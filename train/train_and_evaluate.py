@@ -14,8 +14,62 @@ import os
 import platform
 from matplotlib import rcParams
 rcParams['font.family'] = 'Times New Roman'
+
 from dataloader.dataloader import get_new_dataloader 
 from models.IntegrationModel import Image10Classifier
+
+def plot_loss_curve(train_loss,test_loss):
+    plt.figure(figsize=(8,6))
+    plt.plot(range(1,len(train_loss)+1),train_loss,label='training',color='blue')
+    plt.plot(range(1,len(test_loss)),test_loss,label='test',color='cyan')
+    plt.xlabel('Epochs')
+    plt.ylabel('LOSS')
+    plt.title('Loss Curve')
+    plt.legend()
+    plt.grid(True)
+    plt.show
+
+def plot_confusion_matrix(true_labels,pred_labels,dataset,test_acc):
+
+    num_labels = {
+        'mnist':range(10),
+        'cifar-10':range(10),
+        'fashion-mnist':range(10),
+        'cavtype':["Spruce/Fir","Lodgepole Pine","Ponderosa Pine",
+                   "Cottonwood/Willow","Aspen","Douglas-fir","Krummholz" ]
+    }
+    cm = confusion_matrix(true_labels,pred_labels)
+    cm = cm.astype('float')/cm.sum(axis=1,keeping = True)
+    plt.figure(figsize=(8,6))
+    sns.heatmap(cm, annot=True, fmt=".2f", cmap="Blues",
+                xticklabels=num_labels[dataset],yticklabels=num_labels[dataset],vmin=0.0, vmax=1.0)
+    plt.xlabel('Predicted label')
+    plt.ylabel('True label')
+    plt.title(f"Overall Correction Rate:{test_acc:.2f}%")
+    plt.show()
+
+def plot_histograms(x, model, kernel_size, batch_size, channels, img_size):
+    x = x.view(batch_size, channels, img_size, img_size)
+    x_splitted = model.split(x, kernel_size)
+    x_in_flat = x_splitted.reshape(-1).detach().cpu().numpy()
+    x_encoded = model.encoder(x_splitted)
+    x_out_flat = x_encoded.reshape(-1).detach().cpu().numpy()
+
+    fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+    axes[0].hist(x_in_flat, bins=20, color='darkorange', alpha=0.7)
+    axes[0].set_xlabel("Input value", fontsize=14)
+    axes[0].set_ylabel("Frequency", fontsize=14)
+    axes[0].set_title("Input x Histogram", fontsize=14)
+    axes[0].tick_params(labelsize=12)
+    axes[0].set_ylim(0,)
+    # エンコーダ出力ヒストグラム
+    axes[1].hist(x_out_flat, bins=20, color='steelblue', alpha=0.7)
+    axes[1].set_xlabel("Encoder Output value", fontsize=14)
+    axes[1].set_ylabel("Frequency", fontsize=14)
+    axes[1].set_title("Encoder Output Histogram", fontsize=14)
+    axes[1].tick_params(labelsize=12)
+    plt.tight_layout()
+    plt.show()
 
 
 def train_and_classifier(dataset,loss_func,optimizer,lr,num_try,data_train,
