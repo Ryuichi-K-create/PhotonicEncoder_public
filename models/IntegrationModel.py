@@ -86,7 +86,7 @@ from .Classifiers import MLP_for_10
 
 class Image10Classifier(nn.Module):#10クラスの画像用
     def __init__(self, dataset,kernel_size,leverage,
-                 enc_type,cls_type,num_layer,fc):
+                 enc_type,cls_type,num_layer,fc,device):
         super(Image10Classifier, self).__init__()
         dataset_config = {
             'mnist':     {'img_size': 28, 'channels': 1},
@@ -114,7 +114,7 @@ class Image10Classifier(nn.Module):#10クラスの画像用
         self.num_patches = (self.img_size//kernel_size)*(self.img_size//kernel_size)
         potential_dim = self.num_patches * feat_dim
         self.split = split_into_kernels 
-        self.encoder = encoders[enc_type](kernel_size,leverage,self.channels) 
+        self.encoder = encoders[enc_type](kernel_in,feat_dim,device) 
         self.bn = nn.BatchNorm1d(feat_dim)
         self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc)
         
@@ -123,7 +123,7 @@ class Image10Classifier(nn.Module):#10クラスの画像用
         x = x.view(b, self.channels, self.img_size, self.img_size)
         x = self.split(x, self.kernel_size)#(b, p, c, k, k)
         x = x.reshape(b * self.num_patches,
-                      self.channels * self.img_size**2)
+                      self.channels * self.kernel_size**2)
         x = self.encoder(x) 
         x = self.bn(x)
         x = x.reshape(b, -1)
