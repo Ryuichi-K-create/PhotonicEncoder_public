@@ -12,6 +12,12 @@ from sklearn.metrics import confusion_matrix
 import random
 from dataloader.dataloader import get_new_dataloader 
 from models.IntegrationModel import split_into_kernels, PMEncoder,IMEncoder,MZMEncoder,LIEncoder
+import subprocess
+
+now = datetime.now()
+formatted_time = now.strftime("%m%d%H%M")
+formatted_time = int(formatted_time)
+
 
 home_directory = os.path.expanduser('~')
 system_type = platform.system()
@@ -26,6 +32,18 @@ if system_type == "Windows":
         onedrive_path = os.path.join(home_directory, "OneDrive")
 elif system_type == "Darwin": 
     onedrive_path = os.path.join(home_directory, "Library", "CloudStorage", "OneDrive-個人用(2)")
+
+#------------------------------------------------------------------------------------------
+def auto_git_push(branch_name,commit_msg="Auto commit"):
+    commit_msg = f"{formatted_time}_{commit_msg}"
+    try:
+        subprocess.run(["git", "add", "."], check=True)
+        subprocess.run(["git", "commit", "-m", commit_msg], check=True)
+        subprocess.run(["git", "push","origin",branch_name], check=True)
+        print("✅ Git push 完了！")
+    except subprocess.CalledProcessError as e:
+        print("❌ Git操作でエラー:", e)
+
 
 def plot_loss_curve(train_loss,test_loss):
     plt.figure(figsize=(6,4.5))
@@ -123,9 +141,6 @@ def save_csv(folder,ex_name,data1,data2=None): #結果はonedriveに保存
     save_directory1 = os.path.join(onedrive_path,'Codes','PhotonicEncoder_data',folder)
     print(save_directory1)
     os.makedirs(save_directory1, exist_ok=True)
-    now = datetime.now()
-    formatted_time = now.strftime("%m%d%H%M")
-    formatted_time = int(formatted_time)
     file_name = f'{ex_name}_{formatted_time}.csv'##
     full_path = os.path.join(save_directory1, file_name)
     with open(full_path, mode='w', newline='') as file:
