@@ -129,3 +129,49 @@ class Image10Classifier(nn.Module):#10クラスの画像用
         x = x.reshape(b, -1)
         x = self.classifier(x)
         return x
+
+#--------------------------------------------------------------------
+from .OtherModels import Cell
+#--------------------------------------------------------------------
+class DEQ_Image10Classifier(nn.Module):#10クラスの画像用(DEQ)
+    def __init__(self, dataset,kernel_size,leverage,
+                 enc_type,cls_type,num_layer,fc,num_iter,device):
+        super(DEQ_Image10Classifier, self).__init__() #DEQ_Image10Classifier, self
+        self.device = device
+        dataset_config = {
+            'mnist':     {'img_size': 28, 'channels': 1},
+            'cifar-10':  {'img_size': 32, 'channels': 3},
+            'fashion-mnist': {'img_size': 28, 'channels': 1},
+            'cifar-100': {'img_size': 32, 'channels': 3},
+        }
+        self.img_size = dataset_config[dataset]['img_size']
+        self.channels = dataset_config[dataset]['channels']
+
+        self.kernel_size = kernel_size
+        kernel_in = self.channels*kernel_size**2
+        self.z_dim = int(kernel_in/leverage)
+        classifiers = {
+            'MLP':MLP_for_10
+        }
+        self.num_patches = (self.img_size//kernel_size)*(self.img_size//kernel_size) 
+        potential_dim = self.num_patches * self.z_dim
+        self.num_iter = num_iter
+        self.split = split_into_kernels 
+        self.cell = Cell(kernel_in, self.z_dim,enc_type)
+        #self.bn = nn.BatchNorm1d(self.z_dim)
+        self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc)
+        
+    def forward(self, x):
+        b=x.size(0)
+        x = x.view(b, self.channels, self.img_size, self.img_size)
+        x = self.split(x, self.kernel_size)#(b, p, c, k, k)
+        x = x.reshape(b * self.num_patches,
+                      self.channels * self.kernel_size**2)
+        z = torch.zeros(b * self.num_patches,self.z_dim, device=self.device) #z0
+        for i in range(self.num_iter):
+            zx = torch.cat([x,z], dim=1)
+            z = self.cell(zx)
+        #x = self.bn(x)
+        x = z.reshape(b, -1)
+        x = self.classifier(x)
+        return x

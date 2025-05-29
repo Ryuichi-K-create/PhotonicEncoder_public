@@ -1,3 +1,4 @@
+import torch
 import os
 import platform
 import matplotlib.pyplot as plt
@@ -11,13 +12,13 @@ from datetime import datetime
 from sklearn.metrics import confusion_matrix
 import random
 from dataloader.dataloader import get_new_dataloader 
-from models.IntegrationModel import split_into_kernels, PMEncoder,IMEncoder,MZMEncoder,LIEncoder
+from models.IntegrationModel import split_into_kernels, PMEncoder,IMEncoder,MZMEncoder,LIEncoder,DEQ_Image10Classifier
+from models.OtherModels import Cell
 import subprocess
 
 now = datetime.now()
 formatted_time = now.strftime("%m%d%H%M")
 formatted_time = int(formatted_time)
-
 
 home_directory = os.path.expanduser('~')
 system_type = platform.system()
@@ -180,3 +181,47 @@ def create_table(All_test_acc,All_last_loss,All_pro_time):
     df = pd.DataFrame(data)
     print(df)
 
+def convergence_verify(dataset,num_iter,data_train,data_test,kernel_size,enc_type,leverage,device):
+    dataset_config = {
+        'mnist':     {'img_size': 28, 'channels': 1},
+        'cifar-10':  {'img_size': 32, 'channels': 3},
+        'fashion-mnist': {'img_size': 28, 'channels': 1},
+        'cifar-100': {'img_size': 32, 'channels': 3},
+    }
+    img_size = dataset_config[dataset]['img_size']
+    channels = dataset_config[dataset]['channels']
+    kernel_in = int(channels*kernel_size**2)
+    z_dim = int(kernel_in/leverage)
+    num_patches = int(img_size/kernel_size)**2
+    cell = Cell(kernel_in, z_dim,enc_type)
+    # 可視化用に 1 バッチだけ入力（ここでは乱数）
+    batch_size = 64
+    _,test_dataloader = get_new_dataloader(data_train,data_test,batch_size)
+    for x_batch, _ in test_dataloader:
+        idx = random.randint(0, batch_size-1)
+        x_sample = x_batch[idx].to(device)
+        break 
+    # --------------------------------------------
+    relres = []   # 相対残差の推移
+    with torch.no_grad():
+        B = 1
+        x_sample = x_sample.view(B, channels,img_size, img_size)
+        x_patch = split_into_kernels(x_sample, kernel_size)           # (B, N, k, k)
+        x_patch = x_patch.reshape(B * num_patches, -1)   # (B*N, in_dim)
+
+        z = torch.zeros(B * num_patches, z_dim, device=device)
+        for _ in range(num_iter):
+            z_next = cell(torch.cat([x_patch, z], dim=1))
+            res    = (z_next - z).norm(dim=1)      
+            ref    = z_next.norm(dim=1).clamp_min(1e-10)  
+            relres.append(res.mean().item() / ref.mean().item())
+            z = z_next 
+    # ---------------- プロット ----------------------------------
+    plt.figure(figsize=(6,4))
+    plt.semilogy(range(1, num_iter+1), relres, marker="o")
+    plt.xlabel("iteration")
+    plt.ylabel("relative residual")
+    plt.title("convergence (relative residual)")
+    plt.grid(True, which="both")
+    plt.tight_layout()
+    plt.show()

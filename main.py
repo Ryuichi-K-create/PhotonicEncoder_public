@@ -3,9 +3,6 @@ import sys
 import os
 sys.path.append(os.path.abspath("..")) 
 
-from dataloader.dataloader import load_MNIST_data
-from train.training import train_and_classifier
-
 if torch.cuda.is_available():
     device = torch.device('cuda')
     print("GPU name:", torch.cuda.get_device_name(0))
@@ -18,7 +15,7 @@ print(f'Using device: {device}')
 # importlib.reload(train.training)
 
 from dataloader.dataloader import load_MNIST_data
-from train.training import train_and_classifier
+from train.training import train_nomal,train_for_DEQ
 from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusion_matrix,plot_histograms,create_table,save_csv
 
 dataset = 'mnist'
@@ -40,6 +37,7 @@ num_try = 2
 max_epochs = 3
 leverage = 8
 kernel_size =4
+num_iter = 5
 
 folder = 'Class_MNIST'
 ex_name='PM_MLP'
@@ -50,7 +48,7 @@ All_pro_time = []
 All_test_acc = []
 for num_times in range(num_try):
 
-    loss_train_,loss_test_,pro_time_,Last_loss_test,Test_acc,all_labels,all_preds = train_and_classifier(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,data_test,batch_size,device,max_epochs,leverage,enc_type,cls_type,num_layer,fc,kernel_size)
+    loss_train_,loss_test_,pro_time_,Last_loss_test,Test_acc,all_labels,all_preds = train_for_DEQ(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,data_test,batch_size,device,max_epochs,leverage,enc_type,cls_type,num_layer,fc,kernel_size,num_iter)
 
     All_loss_test.append(loss_test_)
     All_pro_time.append(pro_time_)
