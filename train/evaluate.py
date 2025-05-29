@@ -13,7 +13,7 @@ from sklearn.metrics import confusion_matrix
 import random
 from dataloader.dataloader import get_new_dataloader 
 from models.IntegrationModel import split_into_kernels, PMEncoder,IMEncoder,MZMEncoder,LIEncoder,DEQ_Image10Classifier
-from models.OtherModels import Cell
+from models.OtherModels import Cell,anderson
 import subprocess
 
 now = datetime.now()

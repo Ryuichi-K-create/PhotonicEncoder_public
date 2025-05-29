@@ -39,8 +39,14 @@ leverage = 8
 kernel_size =4
 num_iter = 5
 
-folder = 'Class_MNIST'
-ex_name='PM_MLP'
+folder = 'Class_MNIST_DEQ'
+ex_name='PM_MLP00'
+
+m=5
+lam=1e-4 
+num_iter=25
+tol=1e-2
+beta=1.0
 
 All_last_loss = []
 All_loss_test = []
@@ -48,7 +54,7 @@ All_pro_time = []
 All_test_acc = []
 for num_times in range(num_try):
 
-    loss_train_,loss_test_,pro_time_,Last_loss_test,Test_acc,all_labels,all_preds = train_for_DEQ(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,data_test,batch_size,device,max_epochs,leverage,enc_type,cls_type,num_layer,fc,kernel_size,num_iter)
+    loss_train_,loss_test_,pro_time_,Last_loss_test,Test_acc,all_labels,all_preds = train_for_DEQ(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,data_test,batch_size,device,max_epochs,leverage,enc_type,cls_type,num_layer,fc,kernel_size,num_iter,m,tol,beta)
 
     All_loss_test.append(loss_test_)
     All_pro_time.append(pro_time_)
