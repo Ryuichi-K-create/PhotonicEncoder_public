@@ -116,7 +116,7 @@ class Image10Classifier(nn.Module):#10クラスの画像用
         self.split = split_into_kernels 
         self.encoder = encoders[enc_type](kernel_in,feat_dim,device) 
         self.bn = nn.BatchNorm1d(feat_dim)
-        self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc)
+        self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc).to(device)
         
     def forward(self, x):
         b=x.size(0)
@@ -157,14 +157,14 @@ class DEQ_Image10Classifier(nn.Module):#10クラスの画像用(DEQ)
         potential_dim = self.num_patches * self.z_dim
         self.num_iter = num_iter
         #--------------------------------------------
-        cell = Cell(kernel_in, self.z_dim,enc_type)
+        cell = Cell(kernel_in, self.z_dim,enc_type,device).to(device)
         self.deq_main = DEQFixedPoint(cell,anderson,self.z_dim,
                                       m = m,
                                       num_iter = num_iter,
                                       tol = tol,
                                       beta = beta,
                                       )
-        self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc)
+        self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc).to(device)
         
     def forward(self, x):
         b=x.size(0)

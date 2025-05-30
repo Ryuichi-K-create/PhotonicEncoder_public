@@ -193,7 +193,7 @@ def convergence_verify(dataset,num_iter,m,tol,beta,data_train,data_test,kernel_s
     kernel_in = int(channels*kernel_size**2)
     z_dim = int(kernel_in/leverage)
     num_patches = int(img_size/kernel_size)**2
-    cell = Cell(kernel_in, z_dim,enc_type)
+    cell = Cell(kernel_in, z_dim,enc_type,device).to(device)
     # 可視化用に 1 バッチだけ入力（ここでは乱数）
     batch_size = 64
     _,test_dataloader = get_new_dataloader(data_train,data_test,batch_size)
@@ -212,6 +212,7 @@ def convergence_verify(dataset,num_iter,m,tol,beta,data_train,data_test,kernel_s
             return cell(z,x_patch)
 
         z0 = torch.zeros(B * num_patches, z_dim, device=device)
+
         z_final, relres = anderson(
             fc,
             z0,

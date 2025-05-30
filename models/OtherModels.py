@@ -4,7 +4,7 @@ import torch.nn as nn
 from .IntegrationModel import PMEncoder, IMEncoder, MZMEncoder, LIEncoder
 
 class Cell(nn.Module):
-    def __init__(self, x_dim, z_dim,enc_type):
+    def __init__(self, x_dim, z_dim,enc_type,device):
         super().__init__()
         encoders = {
             'PM':PMEncoder,
@@ -12,7 +12,7 @@ class Cell(nn.Module):
             'MZM':MZMEncoder,
             'LI':LIEncoder
         }
-        self.enc1 = encoders[enc_type](x_dim+z_dim,z_dim)
+        self.enc1 = encoders[enc_type](x_dim+z_dim,z_dim,device)
         self.fc1 = nn.Linear(z_dim,z_dim)
         self.bn = nn.BatchNorm1d(z_dim)
         self.act = nn.ReLU()

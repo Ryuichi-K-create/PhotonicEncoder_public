@@ -33,9 +33,9 @@ loss_func = 'cross_entropy'
 optimizer = 'adam'
 lr = 0.001
 
-num_try = 1
-max_epochs = 10
-leverage = 8
+num_try = 5
+max_epochs = 30
+leverage = 1
 kernel_size =4
 
 folder = 'Class_MNIST_DEQ'
@@ -44,7 +44,7 @@ ex_name='PM_MLP00'
 m=5
 lam=1e-4 
 num_iter=25
-tol=1e-8
+tol=1e-2  #早期終了条件
 beta=1.0
 
 convergence_verify(dataset,num_iter,m,tol,beta,data_train,data_test,kernel_size,enc_type,leverage,device)
@@ -69,5 +69,4 @@ plot_errorbar_losscurve(All_loss_test)
 create_table(All_test_acc,All_last_loss,All_pro_time)
 save_csv(folder,ex_name,All_loss_test)
 
-branch_name = 'main'
-auto_git_push(branch_name=branch_name)
+auto_git_push
