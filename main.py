@@ -16,7 +16,7 @@ print(f'Using device: {device}')
 
 from dataloader.dataloader import load_MNIST_data
 from train.training import train_nomal,train_for_DEQ
-from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusion_matrix,plot_histograms,create_table,save_csv
+from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusion_matrix,plot_histograms,create_table,save_csv,convergence_verify,auto_git_push
 
 dataset = 'mnist'
 data_train,data_test = load_MNIST_data()
@@ -33,11 +33,10 @@ loss_func = 'cross_entropy'
 optimizer = 'adam'
 lr = 0.001
 
-num_try = 2
-max_epochs = 3
+num_try = 1
+max_epochs = 10
 leverage = 8
 kernel_size =4
-num_iter = 5
 
 folder = 'Class_MNIST_DEQ'
 ex_name='PM_MLP00'
@@ -45,8 +44,10 @@ ex_name='PM_MLP00'
 m=5
 lam=1e-4 
 num_iter=25
-tol=1e-2
+tol=1e-8
 beta=1.0
+
+convergence_verify(dataset,num_iter,m,tol,beta,data_train,data_test,kernel_size,enc_type,leverage,device)
 
 All_last_loss = []
 All_loss_test = []
@@ -67,3 +68,6 @@ for num_times in range(num_try):
 plot_errorbar_losscurve(All_loss_test)
 create_table(All_test_acc,All_last_loss,All_pro_time)
 save_csv(folder,ex_name,All_loss_test)
+
+branch_name = 'main'
+auto_git_push(branch_name=branch_name)

@@ -181,7 +181,7 @@ def create_table(All_test_acc,All_last_loss,All_pro_time):
     df = pd.DataFrame(data)
     print(df)
 
-def convergence_verify(dataset,num_iter,data_train,data_test,kernel_size,enc_type,leverage,device):
+def convergence_verify(dataset,num_iter,m,tol,beta,data_train,data_test,kernel_size,enc_type,leverage,device):
     dataset_config = {
         'mnist':     {'img_size': 28, 'channels': 1},
         'cifar-10':  {'img_size': 32, 'channels': 3},
@@ -208,17 +208,29 @@ def convergence_verify(dataset,num_iter,data_train,data_test,kernel_size,enc_typ
         x_sample = x_sample.view(B, channels,img_size, img_size)
         x_patch = split_into_kernels(x_sample, kernel_size)           # (B, N, k, k)
         x_patch = x_patch.reshape(B * num_patches, -1)   # (B*N, in_dim)
+        def fc(z):
+            return cell(z,x_patch)
 
-        z = torch.zeros(B * num_patches, z_dim, device=device)
-        for _ in range(num_iter):
-            z_next = cell(torch.cat([x_patch, z], dim=1))
-            res    = (z_next - z).norm(dim=1)      
-            ref    = z_next.norm(dim=1).clamp_min(1e-10)  
-            relres.append(res.mean().item() / ref.mean().item())
-            z = z_next 
+        z0 = torch.zeros(B * num_patches, z_dim, device=device)
+        z_final, relres = anderson(
+            fc,
+            z0,
+            z_dim=z_dim,
+            m=m,
+            num_iter=num_iter,
+            tol=tol,
+            beta=beta
+        )
+        # z = torch.zeros(B * num_patches, z_dim, device=device)
+        # for _ in range(num_iter):
+        #     z_next = cell(torch.cat([x_patch, z], dim=1))
+        #     res    = (z_next - z).norm(dim=1)      
+        #     ref    = z_next.norm(dim=1).clamp_min(1e-10)  
+        #     relres.append(res.mean().item() / ref.mean().item())
+        #     z = z_next 
     # ---------------- プロット ----------------------------------
     plt.figure(figsize=(6,4))
-    plt.semilogy(range(1, num_iter+1), relres, marker="o")
+    plt.semilogy(range(1, len(relres)+1), relres, marker="o")
     plt.xlabel("iteration")
     plt.ylabel("relative residual")
     plt.title("convergence (relative residual)")
