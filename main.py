@@ -69,4 +69,6 @@ plot_errorbar_losscurve(All_loss_test)
 create_table(All_test_acc,All_last_loss,All_pro_time)
 save_csv(folder,ex_name,All_loss_test)
 
-auto_git_push
+branch_name = 'main'
+auto_git_push(branch_name)
+
