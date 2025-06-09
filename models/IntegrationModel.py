@@ -16,14 +16,15 @@ class PMEncoder(nn.Module):
     def __init__(self,input_dim,output_dim,device='cpu'):
         super(PMEncoder,self).__init__()
         phase = torch.rand(output_dim, input_dim) * 2 * np.pi - np.pi
-        modulus = torch.ones(output_dim, input_dim)
+        modulus = torch.ones(output_dim, input_dim)/np.sqrt(input_dim)
 
         real_part = modulus * torch.cos(phase)
         imag_part = modulus * torch.sin(phase)
 
         self.B = torch.complex(real_part, imag_part).detach().to(device)
         self.B.requires_grad = False
-        self.alpha = torch.rand(input_dim) * 0.5 + 0.5
+        self.alpha = torch.rand(input_dim) * 0.5 + 0.5 
+        # self.alpha = torch.rand(input_dim) * 2 * np.pi 
         self.alpha = self.alpha.detach().to(device)
         self.alpha.requires_grad = False
 
@@ -56,9 +57,10 @@ class MZMEncoder(nn.Module):
         real_part = modulus * torch.cos(phase)
         imag_part = modulus * torch.sin(phase)
 
-        self.B = torch.complex(real_part, imag_part).detach().to(device)
+        self.B = torch.complex(real_part, imag_part).detach().to(device) 
         self.B.requires_grad = False
         self.alpha = torch.rand(input_dim) * 0.5 + 0.5
+        #self.alpha = torch.rand(input_dim) * 2 * np.pi
         self.alpha = self.alpha.detach().to(device)
         self.alpha.requires_grad = False
 
@@ -149,15 +151,18 @@ class DEQ_Image10Classifier(nn.Module):#10クラスの画像用(DEQ)
 
         self.kernel_size = kernel_size
         kernel_in = self.channels*kernel_size**2
-        self.z_dim = int(kernel_in/leverage)
         classifiers = {
             'MLP':MLP_for_10
         }
         self.num_patches = (self.img_size//kernel_size)*(self.img_size//kernel_size) 
-        potential_dim = self.num_patches * self.z_dim
+        kernel_in_total = kernel_in * self.num_patches
+        # self.z_dim = int(kernel_in/leverage)(anderson軽量化)
+        self.z_dim = int(kernel_in_total/leverage)
+        # potential_dim = self.num_patches * self.z_dim(anderson軽量化)
+        potential_dim = self.z_dim
         self.num_iter = num_iter
         #--------------------------------------------
-        cell = Cell(kernel_in, self.z_dim,enc_type,device).to(device)
+        cell = Cell(kernel_in_total, self.z_dim,enc_type,device).to(device)
         self.deq_main = DEQFixedPoint(cell,anderson,self.z_dim,
                                       m = m,
                                       num_iter = num_iter,
@@ -170,8 +175,10 @@ class DEQ_Image10Classifier(nn.Module):#10クラスの画像用(DEQ)
         b=x.size(0)
         x = x.view(b, self.channels, self.img_size, self.img_size)
         x = split_into_kernels(x, self.kernel_size)#(b, p, c, k, k)
-        x = x.reshape(b * self.num_patches,
-                      self.channels * self.kernel_size**2)
+        # x = x.reshape(b * self.num_patches,
+        #               self.channels * self.kernel_size**2)(anderson軽量化)
+
+        x = x.reshape(b,-1)
         x = self.deq_main(x)
         x = x.reshape(b, -1)
         x = self.classifier(x)

@@ -24,7 +24,6 @@ class Cell(nn.Module):
         z = self.fc1(z)
         z = self.act(z)
         return z
-    
 
 def anderson(fc, x0,z_dim, m, num_iter, tol, beta, lam=1e-4):
     bsz,_ = x0.shape
@@ -43,7 +42,12 @@ def anderson(fc, x0,z_dim, m, num_iter, tol, beta, lam=1e-4):
         n = min(k, m)
         G = F[:, :n] - X[:, :n]
         H_mat[:, 1:n + 1, 1:n + 1] = torch.bmm(G, G.transpose(1, 2)) + lam * torch.eye(n, dtype=x0.dtype, device=x0.device)[None]
-        alpha = torch.linalg.solve(H_mat[:, :n + 1, :n + 1], y[:, :n + 1])[:, 1:n + 1, 0]
+        try:
+            alpha = torch.linalg.lstsq( H_mat[:, :n+1, :n+1], y[:, :n+1]).solution[:, 1:n+1, 0] #最小2乗解
+            # alpha = torch.linalg.solve(H_mat[:, :n + 1, :n + 1], y[:, :n + 1])[:, 1:n + 1, 0]
+        except RuntimeError as e:
+            print(f"[Warn] Skipping batch {bsz} at iter {k} due to singular matrix.")
+            continue 
         X[:, k % m] = beta * (alpha[:, None] @ F[:, :n]).squeeze(1) + (1 - beta) * (alpha[:, None] @ X[:, :n]).squeeze(1)
         x_current = X[:,k%m]
         F[:, k % m] = fc(X[:,k%m])
@@ -82,9 +86,9 @@ class DEQFixedPoint(nn.Module):
         
         # 逆伝播時のフックを定義
         def backward_hook(grad):
-            # 逆伝播時の固定点反復 (勾配の近似計算)
             g_st, _ = self.solver(lambda y: torch.autograd.grad(f0, z0, y, retain_graph=True)[0] + grad, grad,z_dim=self.z_dim, **self.kwargs)
             return g_st
 
         z.register_hook(backward_hook)
         return z
+    

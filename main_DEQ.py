@@ -15,8 +15,8 @@ print(f'Using device: {device}')
 # importlib.reload(train.training)
 
 from dataloader.dataloader import load_MNIST_data
-from train.training import train_nomal,train_for_DEQ
-from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusion_matrix,plot_histograms,create_table,save_csv,convergence_verify,auto_git_push
+from train.training import train_for_DEQ
+from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusion_matrix,plot_histograms,create_table,save_csv,convergence_verify
 
 dataset = 'mnist'
 data_train,data_test = load_MNIST_data()
@@ -35,13 +35,13 @@ lr = 0.001
 
 num_try = 5
 max_epochs = 30
-leverage = 1
+leverage = 8
 kernel_size =4
 
 folder = 'Class_MNIST_DEQ'
 ex_name='PM_MLP00'
 
-m=5
+m=10
 lam=1e-4 
 num_iter=25
 tol=1e-2  #早期終了条件
@@ -69,6 +69,4 @@ plot_errorbar_losscurve(All_loss_test)
 create_table(All_test_acc,All_last_loss,All_pro_time)
 save_csv(folder,ex_name,All_loss_test)
 
-branch_name = 'main'
-auto_git_push(branch_name)
 

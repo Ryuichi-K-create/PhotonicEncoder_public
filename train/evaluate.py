@@ -15,6 +15,18 @@ from dataloader.dataloader import get_new_dataloader
 from models.IntegrationModel import split_into_kernels, PMEncoder,IMEncoder,MZMEncoder,LIEncoder,DEQ_Image10Classifier
 from models.OtherModels import Cell,anderson
 import subprocess
+colors = [
+    "#1f77b4",  # 青
+    "#ff7f0e",  # オレンジ
+    "#2ca02c",  # 緑
+    "#d62728",  # 赤
+    "#9467bd",  # 紫
+    "#8c564b",  # 茶
+    "#e377c2",  # ピンク
+    "#7f7f7f",  # グレー
+    "#bcbd22",  # 黄緑
+    "#17becf",  # 水色
+]
 
 now = datetime.now()
 formatted_time = now.strftime("%m%d%H%M")
@@ -238,3 +250,5 @@ def convergence_verify(dataset,num_iter,m,tol,beta,data_train,data_test,kernel_s
     plt.grid(True, which="both")
     plt.tight_layout()
     plt.show()
+
+    
