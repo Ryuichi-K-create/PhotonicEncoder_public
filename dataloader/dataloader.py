@@ -11,6 +11,22 @@ def load_MNIST_data():
     mnist_test = datasets.MNIST(root=root,download=True,train=False,transform=transform)
     return(mnist_train,mnist_test)
 
+def load_CINIC10_data():
+    transform = transforms.Compose([
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomCrop(32, padding=4),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5),
+                            (0.5, 0.5, 0.5))])
+    root = os.path.join(os.path.dirname(__file__), 'samples', 'cinic10_data')
+    train_dataset = datasets.ImageFolder(root=os.path.join(root, 'train'), transform=transform)
+    valid_dataset = datasets.ImageFolder(root=os.path.join(root, 'valid'), transform=transform)
+
+    cinic10_test = datasets.ImageFolder(root=os.path.join(root, 'test'), transform=transform)
+    cinic10_train = torch.utils.data.ConcatDataset([train_dataset, valid_dataset])
+    return(cinic10_train,cinic10_test)
+
+
 def get_new_dataloader(data_train,data_test,batch_size=64):
     train_dataloader = DataLoader(data_train,batch_size,shuffle=True)
     test_dataloader = DataLoader(data_test,batch_size,shuffle=False)

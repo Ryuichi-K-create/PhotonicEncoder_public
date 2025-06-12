@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from .IntegrationModel import PMEncoder, IMEncoder, MZMEncoder, LIEncoder
+from .IntegrationModel import PMEncoder, IMEncoder, MZMEncoder, LIEncoder 
 
 class Cell(nn.Module):
     def __init__(self, x_dim, z_dim,enc_type,device):
@@ -91,4 +91,3 @@ class DEQFixedPoint(nn.Module):
 
         z.register_hook(backward_hook)
         return z
-    

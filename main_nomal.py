@@ -10,16 +10,13 @@ else:
     device = torch.device('cpu')
 print(f'Using device: {device}')
 
-# import importlib
-# import train.training
-# importlib.reload(train.training)
 
-from dataloader.dataloader import load_MNIST_data
+from dataloader.dataloader import load_MNIST_data,load_CINIC10_data
 from train.training import train_nomal,train_for_DEQ
 from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusion_matrix,plot_histograms,create_table,save_csv,convergence_verify,auto_git_push
 #data---------------------------------------------
-dataset = 'mnist'
-data_train,data_test = load_MNIST_data()
+dataset = 'cinic10'
+data_train,data_test = load_CINIC10_data()
 batch_size = 64
 #Encoder_Model------------------------------------
 enc_type = 'PM'

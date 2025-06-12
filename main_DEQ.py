@@ -10,9 +10,6 @@ else:
     device = torch.device('cpu')
 print(f'Using device: {device}')
 
-# import importlib
-# import train.training
-# importlib.reload(train.training)
 
 from dataloader.dataloader import load_MNIST_data
 from train.training import train_for_DEQ
