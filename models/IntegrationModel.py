@@ -95,6 +95,7 @@ class Image10Classifier(nn.Module):#10クラスの画像用
             'cifar-10':  {'img_size': 32, 'channels': 3},
             'fashion-mnist': {'img_size': 28, 'channels': 1},
             'cifar-100': {'img_size': 32, 'channels': 3},
+            'cinic-10': {'img_size':32, 'channels':3}
         }
         if dataset not in dataset_config:
             raise ValueError(f"Unknown dataset: {dataset}")
