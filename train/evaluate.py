@@ -252,3 +252,35 @@ def convergence_verify(dataset,num_iter,m,tol,beta,data_train,data_test,kernel_s
     plt.show()
 
     
+
+def show_images(images,labels,channels,img_size,title):
+    images = images.view(images.size(0),channels,img_size,img_size)
+    fixed_indices = {1:1,3:3,5:1}
+    selected_classes = [1,3,5]
+    class_names = {
+        'mnist': ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+        'cifar-10': ['plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck'],
+        'fashion-mnist': ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat', 'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot'],
+        'cavtype': ["Spruce/Fir", "Lodgepole Pine", "Ponderosa Pine", "Cottonwood/Willow", "Aspen", "Douglas-fir", "Krummholz"]
+    }
+    images = images.cpu().numpy()
+    images = images.transpose(0, 2, 3, 1)  # (B, C, H, W) -> (B, H, W, C)
+    mean = np.array([0,0,0])
+    std = np.array([1,1,1])
+    images =  images * std + mean  # 標準化を元に戻す
+    images = np.clip(images, 0, 1)  # 0-1の範囲にクリップ
+
+    num_classes = len(selected_classes)
+    fig, axes = plt.subplots(1, num_classes, figsize=(num_classes * 5, 5))
+    for i, class_idx in enumerate(selected_classes):
+        indices = np.where(labels == class_idx)[0]
+        if len(indices) > 0:
+            if class_idx in fixed_indices:
+                idx = indices[fixed_indices[class_idx]]
+            else:
+                idx = indices[0]  # 最初のインデックスを使用
+            axes[i].imshow(images[idx])
+            axes[i].set_title(f"Class: {class_idx} ({class_names['cavtype'][class_idx]})")
+        else:
+            axes[i].axis('off')  # 該当クラスがない場合は非表示
+    plt.suptitle(title)

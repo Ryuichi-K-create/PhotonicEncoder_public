@@ -20,6 +20,7 @@ def train_nomal(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
     models = {
         'mnist':Image10Classifier,
         'cifar-10':Image10Classifier,
+        'cinic-10':Image10Classifier,
         'fashion-mnist':Image10Classifier
     }
     #---------------------------------------------
@@ -103,6 +104,7 @@ def train_for_DEQ(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
     models = {
         'mnist':DEQ_Image10Classifier,
         'cifar-10':DEQ_Image10Classifier,
+        'cinic-10':DEQ_Image10Classifier,
         'fashion-mnist':DEQ_Image10Classifier
     }
     #---------------------------------------------
