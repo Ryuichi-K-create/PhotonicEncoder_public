@@ -178,3 +178,4 @@ def train_for_DEQ(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
     Last_loss_test = loss_test_[-1]
     Test_acc = 100 * correct / total
     return loss_train_,loss_test_,pro_time_,Last_loss_test,Test_acc,all_labels,all_preds
+

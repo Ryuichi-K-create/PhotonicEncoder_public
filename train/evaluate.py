@@ -244,12 +244,12 @@ def convergence_verify(dataset,num_iter,m,tol,beta,data_train,data_test,kernel_s
     plt.tight_layout()
     plt.show()
 
-    
 
 def show_images(images,labels,dataset,fixed_indices):
     dataset_config = {
     'mnist':     {'img_size': 28, 'channels': 1, 'title': "MNIST Original Images"},
     'cifar-10':  {'img_size': 32, 'channels': 3,'title': "CIFAR-10 Original Images"},
+    'cinic-10':  {'img_size': 32, 'channels': 3,'title': "CINIC-10 Original Images"},
     'fashion-mnist': {'img_size': 28, 'channels': 1, 'title': "Fashion-MNIST Original Images"},
     'cifar-100': {'img_size': 32, 'channels': 3, 'title': "CIFAR-100 Original Images"},
     }
@@ -264,6 +264,7 @@ def show_images(images,labels,dataset,fixed_indices):
     class_names = {
         'mnist': ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
         'cifar-10': ['plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck'],
+        'cinic-10': ['plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck'],
         'fashion-mnist': ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat', 'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
     }
 
@@ -287,5 +288,6 @@ def show_images(images,labels,dataset,fixed_indices):
             axes[i].set_title(f"{class_names[dataset][class_idx]}")
             axes[i].axis('off')
         else:
+            print(f"No images found for class {class_idx} in dataset {dataset}.")
             axes[i].axis('off')  # 該当クラスがない場合は非表示
     plt.suptitle(title)
