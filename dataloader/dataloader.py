@@ -5,11 +5,24 @@ import os
 
 
 def load_MNIST_data():
-    transform = transforms.Compose([transforms.ToTensor(),transforms.Normalize((0.5,),(0.5,)),lambda x: x.view(-1)])
+    transform = transforms.Compose([transforms.ToTensor(),transforms.Normalize((0,),(1,)),lambda x: x.view(-1)])
     root = os.path.join(os.path.dirname(__file__), 'samples', 'mnist_data')
     mnist_train = datasets.MNIST(root=root,download=True,train=True,transform=transform)
     mnist_test = datasets.MNIST(root=root,download=True,train=False,transform=transform)
     return(mnist_train,mnist_test)
+
+def load_CIFAR10_data():
+    transform = transforms.Compose([
+        # transforms.RandomHorizontalFlip(),
+        # transforms.RandomCrop(32, padding=4),
+        transforms.ToTensor(),
+        transforms.Normalize((0, 0, 0),
+                            (1, 1, 1))])
+    root = os.path.join(os.path.dirname(__file__), 'samples', 'cifar10_data')
+    cifar10_train = datasets.CIFAR10(root=root, download=True, train=True, transform=transform)
+    cifar10_test = datasets.CIFAR10(root=root, download=True, train=False, transform=transform)
+
+    return(cifar10_train,cifar10_test)
 
 def load_CINIC10_data():
     transform = transforms.Compose([

@@ -234,13 +234,6 @@ def convergence_verify(dataset,num_iter,m,tol,beta,data_train,data_test,kernel_s
             tol=tol,
             beta=beta
         )
-        # z = torch.zeros(B * num_patches, z_dim, device=device)
-        # for _ in range(num_iter):
-        #     z_next = cell(torch.cat([x_patch, z], dim=1))
-        #     res    = (z_next - z).norm(dim=1)      
-        #     ref    = z_next.norm(dim=1).clamp_min(1e-10)  
-        #     relres.append(res.mean().item() / ref.mean().item())
-        #     z = z_next 
     # ---------------- プロット ----------------------------------
     plt.figure(figsize=(6,4))
     plt.semilogy(range(1, len(relres)+1), relres, marker="o")
@@ -253,16 +246,27 @@ def convergence_verify(dataset,num_iter,m,tol,beta,data_train,data_test,kernel_s
 
     
 
-def show_images(images,labels,channels,img_size,title):
-    images = images.view(images.size(0),channels,img_size,img_size)
-    fixed_indices = {1:1,3:3,5:1}
-    selected_classes = [1,3,5]
+def show_images(images,labels,dataset,fixed_indices):
+    dataset_config = {
+    'mnist':     {'img_size': 28, 'channels': 1, 'title': "MNIST Original Images"},
+    'cifar-10':  {'img_size': 32, 'channels': 3,'title': "CIFAR-10 Original Images"},
+    'fashion-mnist': {'img_size': 28, 'channels': 1, 'title': "Fashion-MNIST Original Images"},
+    'cifar-100': {'img_size': 32, 'channels': 3, 'title': "CIFAR-100 Original Images"},
+    }
+    img_size = dataset_config[dataset]['img_size']
+    channels = dataset_config[dataset]['channels']
+    title= dataset_config[dataset]['title']
+
+    images = images.view(images.size(0),channels,
+                         img_size,img_size)
+    selected_classes = list(fixed_indices.keys())
+
     class_names = {
         'mnist': ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
         'cifar-10': ['plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck'],
-        'fashion-mnist': ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat', 'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot'],
-        'cavtype': ["Spruce/Fir", "Lodgepole Pine", "Ponderosa Pine", "Cottonwood/Willow", "Aspen", "Douglas-fir", "Krummholz"]
+        'fashion-mnist': ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat', 'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
     }
+
     images = images.cpu().numpy()
     images = images.transpose(0, 2, 3, 1)  # (B, C, H, W) -> (B, H, W, C)
     mean = np.array([0,0,0])
@@ -280,7 +284,8 @@ def show_images(images,labels,channels,img_size,title):
             else:
                 idx = indices[0]  # 最初のインデックスを使用
             axes[i].imshow(images[idx])
-            axes[i].set_title(f"Class: {class_idx} ({class_names['cavtype'][class_idx]})")
+            axes[i].set_title(f"{class_names[dataset][class_idx]}")
+            axes[i].axis('off')
         else:
             axes[i].axis('off')  # 該当クラスがない場合は非表示
     plt.suptitle(title)
