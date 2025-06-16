@@ -52,7 +52,7 @@ def load_CINIC10_data():
 def get_new_dataloader(data_train,data_test,batch_size=64):
     train_dataloader = DataLoader(data_train,batch_size,shuffle=True)
 
-    # g = torch.Generator()
-    torch.manual_seed(42)
-    test_dataloader = DataLoader(data_test,batch_size,shuffle=True)
+    g = torch.Generator()
+    g.manual_seed(42)
+    test_dataloader = DataLoader(data_test,batch_size,shuffle=True, generator=g)
     return train_dataloader, test_dataloader
