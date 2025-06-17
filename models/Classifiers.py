@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import numpy as np
 
 class MLP_for_10(nn.Module):#10値分類なら使える。
     def __init__(self,potential_dim,num_layer = 2,fc='relu'):
@@ -24,4 +25,36 @@ class MLP_for_10(nn.Module):#10値分類なら使える。
     def forward(self, x):
         x = self.model(x)
         return x
+
+
+class CNN_for10(nn.Module):
+    def __init__(self,potential_dim,num_layer = 2,fc='relu',n_patches=16):
+        super(CNN_for10, self).__init__()
+        side = int(np.sqrt(n_patches))
+        self.conv1 = nn.Conv2d(potential_dim,32, kernel_size=3, stride=1, padding=1)
+        self.conv2 = nn.Conv2d(32,64, kernel_size=3, stride=1, padding=1)
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
+        self.fc1 = nn.Linear(64 * (side // 4) * (side // 4), 256)
+        self.fc2 = nn.Linear(256, 10)
+        func ={
+            'relu':nn.ReLU(),
+            'tanh':nn.Tanh(),
+            'leakyrelu':nn.LeakyReLU(),
+            'sigmoid':nn.Sigmoid()
+        }
+        self.func = func[fc]
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.func(x)
+        x = self.pool(x)
+
+        x = self.conv2(x)
+        x = self.func(x)
+        x = self.pool(x)
+        x = x.view(x.size(0), -1)
+        x = self.func(self.fc1(x))
+        x = self.fc2(x)
+        return x
+    
 
