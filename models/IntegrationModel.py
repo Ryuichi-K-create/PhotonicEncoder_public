@@ -112,16 +112,15 @@ class Image10Classifier(nn.Module):#10クラスの画像用
             'LI':LIEncoder
         }
         classifiers = {
-            'MLP':{'model':MLP_for_10,'bn':nn.BatchNorm1d},
-            'CNN':{'model':CNN_for10,'bn':nn.BatchNorm2d}
+            'MLP':MLP_for_10,
+            'CNN':CNN_for10
         }
 
         self.num_patches = (self.img_size//kernel_size)**2
         potential_dim = self.num_patches * feat_dim
         self.split = split_into_kernels 
         self.encoder = encoders[enc_type](kernel_in,feat_dim,device) 
-        self.bn = classifiers[cls_type]['bn'](feat_dim).to(device)
-        self.classifier =  classifiers[cls_type]['model'](potential_dim,num_layer,fc,self.num_patches).to(device)
+        self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc,self.num_patches).to(device)
 
     def forward(self, x):
         b=x.size(0)
@@ -130,9 +129,7 @@ class Image10Classifier(nn.Module):#10クラスの画像用
         x = x.reshape(b * self.num_patches,
                       self.channels * self.kernel_size**2)
         x = self.encoder(x) 
-        x = self.bn(x)
-        x = x.reshape(b, -1)
-        x = self.classifier(x)
+        x = self.classifier(x,b)
         return x
 
 #--------------------------------------------------------------------
