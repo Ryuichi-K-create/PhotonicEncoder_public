@@ -11,16 +11,16 @@ else:
 print(f'Using device: {device}')
 
 
-from dataloader.dataloader import load_MNIST_data,load_CINIC10_data
+from dataloader.dataloader import load_MNIST_data,load_CINIC10_data,load_CIFAR10_data
 from train.training import train_nomal,train_for_DEQ
 from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusion_matrix,plot_histograms,create_table,save_csv,convergence_verify,auto_git_push
 #data---------------------------------------------
-dataset = 'cinic10'
-data_train,data_test = load_CINIC10_data()
-batch_size = 64
+dataset = 'cifar-10'
+data_train,data_test = load_CIFAR10_data()
+batch_size = 100 #64 MNIST, 100 CIFAR10, 100 CINIC10
 #Encoder_Model------------------------------------
 enc_type = 'PM'
-cls_type = 'MLP'
+cls_type = 'CNN' # 'MLP' or 'CNN'
 #class_model--------------------------------------
 num_layer = 2
 fc ='relu'
@@ -34,8 +34,8 @@ max_epochs = 10
 leverage = 8
 kernel_size =4
 #save---------------------------------------------
-folder = 'Class_MNIST'
-ex_name='PM_MLP'
+folder = 'Class_CIFAR10'
+ex_name='PM_CNN'
 
 All_last_loss = []
 All_loss_test = []
