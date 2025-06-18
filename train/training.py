@@ -65,9 +65,9 @@ def train_nomal(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
             i+=1
             sys.stderr.write('\r%d/%dth Epoch:%d/%d(%.2f%%) ' % (num_times+1,num_try, epoch+1, max_epochs,100*i/len(train_dataloader))) 
             sys.stderr.flush()
-
         loss_train_avg = loss_train/len(train_dataloader)
         end_time1 = time.time()
+        print('Epoch %d/%d:Time=%.2f' % (epoch+1, max_epochs, end_time1-start_time1))
         pro_time_.append(end_time1-start_time1)
 
         model.eval()
@@ -153,6 +153,7 @@ def train_for_DEQ(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
         loss_train_avg = loss_train/len(train_dataloader)
         end_time1 = time.time()
         pro_time_.append(end_time1-start_time1)
+        # print('Epoch %d/%d:Time=%.2f' % (epoch+1, max_epochs, end_time1-start_time1))
 
         model.eval()
         with torch.no_grad():

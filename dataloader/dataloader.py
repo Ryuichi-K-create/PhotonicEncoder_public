@@ -1,7 +1,8 @@
 import torch##
 from torchvision import datasets, transforms
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
 import os
+import numpy as np
 
 
 def load_MNIST_data():
@@ -45,6 +46,15 @@ def load_CINIC10_data():
     cinic10_test = datasets.ImageFolder(root=os.path.join(root, 'test'), transform=transform)
 
     cinic10_train = torch.utils.data.ConcatDataset([train_dataset, valid_dataset])
+
+    train_size = 50000
+    test_size = 10000
+
+    train_indices = np.random.choice(len(cinic10_train), train_size, replace=False)
+    cinic10_train = Subset(cinic10_train, train_indices)
+
+    test_indices = np.random.choice(len(cinic10_test), test_size, replace=False)
+    cinic10_test = Subset(cinic10_test, test_indices)
 
     return(cinic10_train,cinic10_test)
 
