@@ -10,15 +10,14 @@ else:
     device = torch.device('cpu')
 print(f'Using device: {device}')
 
-
 from dataloader.dataloader import load_MNIST_data,load_CINIC10_data,load_CIFAR10_data,load_Fmnist_data
 from train.training import train_nomal,train_for_DEQ
 from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusion_matrix,plot_histograms,create_table,save_csv,convergence_verify,auto_git_push
 #data---------------------------------------------
-dataset = 'cifar-10' # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
+dataset = 'cinic-10' # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
 batch_size = 100 #64 MNIST, 100 CIFAR10, 100 CINIC10
 #Encoder_Model------------------------------------
-enc_type = 'none' # 'none', 'MZM', 'LI'
+enc_type = 'PM' # 'none', 'MZM', 'LI'
 cls_type = 'CNN' # 'MLP' or 'CNN'
 #class_model--------------------------------------
 num_layer = 2

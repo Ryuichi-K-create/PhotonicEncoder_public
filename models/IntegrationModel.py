@@ -146,6 +146,7 @@ class DEQ_Image10Classifier(nn.Module):#10クラスの画像用(DEQ)
         dataset_config = {
             'mnist':     {'img_size': 28, 'channels': 1},
             'cifar-10':  {'img_size': 32, 'channels': 3},
+            'cinic-10': {'img_size':32, 'channels':3},
             'fashion-mnist': {'img_size': 28, 'channels': 1},
             'cifar-100': {'img_size': 32, 'channels': 3},
         }
@@ -155,7 +156,8 @@ class DEQ_Image10Classifier(nn.Module):#10クラスの画像用(DEQ)
         self.kernel_size = kernel_size
         kernel_in = self.channels*kernel_size**2
         classifiers = {
-            'MLP':MLP_for_10
+            'MLP':MLP_for_10,
+            'CNN':CNN_for10
         }
         self.num_patches = (self.img_size//kernel_size)*(self.img_size//kernel_size) 
         kernel_in_total = kernel_in * self.num_patches
@@ -184,5 +186,5 @@ class DEQ_Image10Classifier(nn.Module):#10クラスの画像用(DEQ)
         x = x.reshape(b,-1)
         x = self.deq_main(x)
         x = x.reshape(b, -1)
-        x = self.classifier(x)
+        x = self.classifier(x,b)
         return x
