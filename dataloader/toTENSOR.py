@@ -4,8 +4,8 @@ from PIL import Image
 import sys
 
 data_root = '/Users/konishi/PhotnicEncoder/dataloader/samples/cinic10_data'
-split = 'train'  # 'train', 'valid', 'test' で切り替え
-data_dir = os.path.join(data_root, split)
+split = 'test'  # 'train', 'valid', 'test' で切り替え
+data_dir = os.path.join(data_root, f'{split}_cifar10')
 
 all_imgs = []
 all_labels = []
@@ -33,7 +33,7 @@ if len(all_imgs) == 0:
 all_imgs = np.stack(all_imgs)
 all_labels = np.array(all_labels)
 
-save_dir = '/Users/konishi/PhotnicEncoder/dataloader/samples/cinic10_data/train_main'
+save_dir = '/Users/konishi/PhotnicEncoder/dataloader/samples/cinic10_data/cifar-10_main'
 os.makedirs(save_dir, exist_ok=True)
 np.save(os.path.join(save_dir, f'cinic10_{split}_imgs.npy'), all_imgs)
 np.save(os.path.join(save_dir, f'cinic10_{split}_labels.npy'), all_labels)

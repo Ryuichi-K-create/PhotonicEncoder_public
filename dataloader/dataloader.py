@@ -57,7 +57,7 @@ def load_CINIC10_data():
         transforms.ToTensor(),
         transforms.Normalize((0, 0, 0),
                             (1, 1, 1))])
-    root = os.path.join(os.path.dirname(__file__), 'samples', 'cinic10_data','main_data')
+    root = os.path.join(os.path.dirname(__file__), 'samples', 'cinic10_data','cifar-10_main')
     train_dataset = NumpyCINIC10Dataset(img_path=os.path.join(root, 'cinic10_train_imgs.npy'),
                                          label_path=os.path.join(root, 'cinic10_train_labels.npy'),
                                          transform=transform)
@@ -70,14 +70,14 @@ def load_CINIC10_data():
 
     cinic10_train = torch.utils.data.ConcatDataset([train_dataset, valid_dataset])
 
-    train_size = 50000
-    test_size = 10000
-    np.random.seed(42)  # For reproducibility
-    train_indices = np.random.choice(len(cinic10_train), train_size, replace=False)
-    cinic10_train = Subset(cinic10_train, train_indices)
+    # train_size = 50000
+    # test_size = 10000
+    # np.random.seed(42)  # For reproducibility
+    # train_indices = np.random.choice(len(cinic10_train), train_size, replace=False)
+    # cinic10_train = Subset(cinic10_train, train_indices)
 
-    test_indices = np.random.choice(len(cinic10_test), test_size, replace=False)
-    cinic10_test = Subset(cinic10_test, test_indices)
+    # test_indices = np.random.choice(len(cinic10_test), test_size, replace=False)
+    # cinic10_test = Subset(cinic10_test, test_indices)
 
     return(cinic10_train,cinic10_test)
 #--------------------------------------------------------
