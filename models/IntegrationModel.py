@@ -109,7 +109,8 @@ class Image10Classifier(nn.Module):#10クラスの画像用
             'PM':PMEncoder,
             'IM':IMEncoder,
             'MZM':MZMEncoder,
-            'LI':LIEncoder
+            'LI':LIEncoder,
+            'none':PMEncoder
         }
         classifiers = {
             'MLP':MLP_for_10,
@@ -119,6 +120,7 @@ class Image10Classifier(nn.Module):#10クラスの画像用
         self.num_patches = (self.img_size//kernel_size)**2
         potential_dim = self.num_patches * feat_dim
         self.split = split_into_kernels 
+        self.enc_type = enc_type
         self.encoder = encoders[enc_type](kernel_in,feat_dim,device) 
         self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc,self.num_patches).to(device)
 
@@ -128,7 +130,8 @@ class Image10Classifier(nn.Module):#10クラスの画像用
         x = self.split(x, self.kernel_size)#(b, p, c, k, k)
         x = x.reshape(b * self.num_patches,
                       self.channels * self.kernel_size**2)
-        x = self.encoder(x) 
+        if self.enc_type is not 'none':
+            x = self.encoder(x) 
         x = self.classifier(x,b)
         return x
 
