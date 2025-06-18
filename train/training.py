@@ -67,7 +67,7 @@ def train_nomal(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
             sys.stderr.flush()
         loss_train_avg = loss_train/len(train_dataloader)
         end_time1 = time.time()
-        print('Epoch %d/%d:Time=%.2f' % (epoch+1, max_epochs, end_time1-start_time1))
+        # print('Epoch %d/%d:Time=%.2f' % (epoch+1, max_epochs, end_time1-start_time1))
         pro_time_.append(end_time1-start_time1)
 
         model.eval()
