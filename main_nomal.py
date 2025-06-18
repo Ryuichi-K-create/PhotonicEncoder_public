@@ -15,7 +15,7 @@ from dataloader.dataloader import load_MNIST_data,load_CINIC10_data,load_CIFAR10
 from train.training import train_nomal,train_for_DEQ
 from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusion_matrix,plot_histograms,create_table,save_csv,convergence_verify,auto_git_push
 #data---------------------------------------------
-dataset = 'cinic-10' # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
+dataset = 'cifar-10' # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
 batch_size = 100 #64 MNIST, 100 CIFAR10, 100 CINIC10
 #Encoder_Model------------------------------------
 enc_type = 'PM'
@@ -29,7 +29,7 @@ optimizer = 'adam'
 lr = 0.001
 #param--------------------------------------------
 num_try = 1
-max_epochs = 3
+max_epochs = 10
 leverage = 8
 kernel_size =4
 #save---------------------------------------------
