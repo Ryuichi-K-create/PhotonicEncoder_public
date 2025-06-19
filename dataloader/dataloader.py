@@ -13,7 +13,7 @@ def load_MNIST_data():
     return(mnist_train,mnist_test)
 #--------------------------------------------------------
 def load_Fmnist_data():
-    transform = transforms.Compose([transforms.ToTensor(),
+    transform = transforms.Compose([transforms.ToTensor(),transforms.RandomHorizontalFlip(),
                                     transforms.Normalize((0,),(1,)),lambda x: x.view(-1)])
     root = os.path.join(os.path.dirname(__file__), 'samples', 'Fmnist_data')
     fmnist_train = datasets.FashionMNIST(root=root,download=True,train=True,transform=transform)

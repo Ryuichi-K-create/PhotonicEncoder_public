@@ -300,11 +300,11 @@ def graph_maker(file_pathes,leverages,memory_lis,labels):
     fmts =  ['-o', '-s', '-^', '-D']  # 各モデルのプロットスタイル
 
     # LOSSのグラフ
-    fig1, ax1 = plt.subplots()
+    fig1, ax1 = plt.subplots(figsize=(6, 4.5))
     ax1.tick_params(axis='both', labelsize=15)
 
     # ACCのグラフ
-    fig2, ax2 = plt.subplots()
+    fig2, ax2 = plt.subplots(figsize=(6, 4.5))
     ax2.tick_params(axis='both', labelsize=15)
 
     i = 0
@@ -342,7 +342,7 @@ def graph_maker(file_pathes,leverages,memory_lis,labels):
     ax1.set_xticklabels([f"1:{x}" for x in memory_lis])
     ax1.set_ylabel('LOSS', fontsize=15)
     ax1.grid(True)
-    plt.show()
+
 
     ax2.set_xlabel('Compression Ratio ', fontsize=15)
     ax2.set_xticks(memory_lis)

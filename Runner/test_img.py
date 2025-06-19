@@ -2,8 +2,7 @@ import torch
 import sys
 import os
 import matplotlib.pyplot as plt
-sys.path.append(os.path.abspath("..")) 
-
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if torch.cuda.is_available():
     device = torch.device('cuda')
     print("GPU name:", torch.cuda.get_device_name(0))
@@ -15,8 +14,8 @@ from dataloader.dataloader import load_MNIST_data,load_CIFAR10_data, load_CINIC1
 from train.evaluate import show_images
 from dataloader.dataloader import get_new_dataloader
 #data---------------------------------------------
-dataset ='cifar-10' # 'cifar10', 'cinic10', 'mnist'
-fixed_indices = {1:1,3:1,5:1}
+dataset ='fashion-mnist' # 'cifar10', 'cinic10', 'mnist'
+fixed_indices = {1:1,4:3,5:2}
 
 #-------------------------------------------------
 load_data = {

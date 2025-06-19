@@ -2,6 +2,7 @@ import torch
 import sys
 import os
 sys.path.append(os.path.abspath("..")) 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 if torch.cuda.is_available():
     device = torch.device('cuda')
@@ -17,7 +18,7 @@ from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusio
 dataset = 'cinic-10' # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
 batch_size = 100 #64 MNIST, 100 CIFAR10, 100 CINIC10 
 #Encoder_Model------------------------------------
-enc_type = 'PM' # 'none', 'MZM', 'LI'
+enc_type = 'none' # 'none', 'MZM', 'LI'
 cls_type = 'CNN' # 'MLP' or 'CNN'
 #class_model--------------------------------------
 num_layer = 2
@@ -27,7 +28,7 @@ loss_func = 'cross_entropy'
 optimizer = 'adam'
 lr = 0.001
 #param--------------------------------------------
-num_try = 1
+num_try = 5
 max_epochs = 10
 leverage = 8 #enc is not none
 kernel_size =4
