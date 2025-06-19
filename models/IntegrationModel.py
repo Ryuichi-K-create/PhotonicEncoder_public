@@ -130,7 +130,7 @@ class Image10Classifier(nn.Module):#10クラスの画像用
         x = self.split(x, self.kernel_size)#(b, p, c, k, k)
         x = x.reshape(b * self.num_patches,
                       self.channels * self.kernel_size**2)
-        if self.enc_type is not 'none':
+        if self.enc_type != 'none':
             x = self.encoder(x) 
         x = self.classifier(x,b)
         return x

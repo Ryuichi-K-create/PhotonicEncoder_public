@@ -15,7 +15,7 @@ from dataloader.dataloader import load_MNIST_data,load_CIFAR10_data, load_CINIC1
 from train.evaluate import show_images
 from dataloader.dataloader import get_new_dataloader
 #data---------------------------------------------
-dataset ='cinic-10' # 'cifar10', 'cinic10', 'mnist'
+dataset ='cifar-10' # 'cifar10', 'cinic10', 'mnist'
 fixed_indices = {1:1,3:1,5:1}
 
 #-------------------------------------------------
