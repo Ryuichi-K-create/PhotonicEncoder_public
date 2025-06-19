@@ -22,10 +22,10 @@ elif system_type == "Darwin":
 print(f"OneDrive path: {onedrive_path}")
 
 #--------------------------------------------------------------
-root = os.path.join(onedrive_path,'Codes','PhotonicEncoder_data','Class_fashion-mnist_VCR')
+root1 = os.path.join(onedrive_path,'Codes','PhotonicEncoder_data','Class_fashion-mnist_VCR')
 
-file1 = os.path.join(root, 'PM_CNN_6190152.csv')
-file2 = os.path.join(root, 'IM_CNN_6190152.csv')
+file1 = os.path.join(root1, 'PM_CNN_6190152.csv')
+file2 = os.path.join(root1, 'IM_CNN_6190152.csv')
 file_pathes = [file1, file2]
 
 leverages = [2,4,6,8,12,16,24,48]
