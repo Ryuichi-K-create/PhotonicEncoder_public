@@ -1,0 +1,35 @@
+import os
+import platform
+import sys
+# sys.path.append(os.path.abspath(".."))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from train.evaluate import graph_maker
+
+home_directory = os.path.expanduser('~')
+system_type = platform.system()
+
+# デフォルトの OneDrive フォルダ名
+onedrive_path = None
+if system_type == "Windows":
+    # Windows では環境変数が使える（MS公式な方法）
+    onedrive_path = os.environ.get("OneDrive")
+    if onedrive_path is None:
+        # フォールバック
+        onedrive_path = os.path.join(home_directory, "OneDrive")
+elif system_type == "Darwin": 
+    onedrive_path = os.path.join(home_directory, "Library", "CloudStorage", "OneDrive-個人用(2)")
+
+print(f"OneDrive path: {onedrive_path}")
+
+#--------------------------------------------------------------
+root = os.path.join(onedrive_path,'Codes','PhotonicEncoder_data','Class_fashion-mnist_VCR')
+
+file1 = os.path.join(root, 'PM_CNN_6190152.csv')
+file2 = os.path.join(root, 'IM_CNN_6190152.csv')
+file_pathes = [file1, file2]
+
+leverages = [2,4,6,8,12,16,24,48]
+memory_lis =[2,10,20,30,40,50]
+labels = ['(1)Phase Modulation','(2)Intensity Modulation','(3)MZ Modulation','(4)Linear'] 
+
+graph_maker(file_pathes, leverages, memory_lis, labels)

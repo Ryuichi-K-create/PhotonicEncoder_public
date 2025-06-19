@@ -292,3 +292,60 @@ def show_images(images,labels,dataset,fixed_indices):
             print(f"No images found for class {class_idx} in dataset {dataset}.")
             axes[i].axis('off')  # 該当クラスがない場合は非表示
     plt.suptitle(title)
+
+def graph_maker(file_pathes,leverages,memory_lis,labels):
+
+    fmts =  ['-o', '-s', '-^', '-D']  # 各モデルのプロットスタイル
+
+    # LOSSのグラフ
+    fig1, ax1 = plt.subplots()
+    ax1.tick_params(axis='both', labelsize=15)
+
+    # ACCのグラフ
+    fig2, ax2 = plt.subplots()
+    ax2.tick_params(axis='both', labelsize=15)
+
+    i = 0
+    for file_path in file_pathes:
+        with open(file_path, 'r') as file:
+            reader = csv.reader(file)
+            rows = list(reader)
+        All_last_LOSSs_ = np.array([eval(row) for row in rows[0]]) 
+        print(np.array(All_last_LOSSs_).shape)
+        All_last_ACCs_ = np.array([eval(row) for row in rows[1]]) 
+        All_last_LOSSs_ = np.array(All_last_LOSSs_)
+        All_last_ACCs_ = np.array(All_last_ACCs_)
+
+        # データを2次元配列に変換（必要に応じて）
+        LOSS_means = np.mean(All_last_LOSSs_, axis=1)  # 各 leverage に対する平均
+        LOSS_stds = np.std(All_last_LOSSs_, axis=1)   # 各 leverage に対する標準偏差
+        ACC_means = np.mean(All_last_ACCs_, axis=1)  # 各 leverage に対する平均
+        ACC_stds = np.std(All_last_ACCs_, axis=1)   # 各 leverage に対する標準偏差
+
+        ax1.errorbar(
+            x=leverages, y=LOSS_means, yerr=LOSS_stds,
+            fmt=fmts[i], color=colors[i], ecolor=colors[i], capsize=5, 
+            label=labels[i]
+        )
+
+        ax2.errorbar(
+            x=leverages, y=ACC_means, yerr=ACC_stds,
+            fmt=fmts[i], color=colors[i], ecolor=colors[i], capsize=5,
+            label=labels[i]
+        )
+        i += 1
+    
+    ax1.set_xlabel('Compression Ratio', fontsize=15)
+    ax1.set_xticks(memory_lis)
+    ax1.set_xticklabels([f"1:{x}" for x in memory_lis])
+    ax1.set_ylabel('LOSS', fontsize=15)
+    ax1.grid(True)
+    plt.show()
+
+    ax2.set_xlabel('Compression Ratio ', fontsize=15)
+    ax2.set_xticks(memory_lis)
+    ax2.set_xticklabels([f"1:{x}" for x in memory_lis])
+    ax2.set_ylabel('Accuracy', fontsize=15)
+    ax2.legend(fontsize=15, loc='upper left', bbox_to_anchor=(1.0, 1))
+    ax2.grid(True)
+    plt.show()
