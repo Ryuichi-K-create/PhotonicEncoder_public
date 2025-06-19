@@ -24,12 +24,12 @@ print(f"OneDrive path: {onedrive_path}")
 #--------------------------------------------------------------
 root1 = os.path.join(onedrive_path,'Codes','PhotonicEncoder_data','Class_fashion-mnist_VCR')
 
-file1 = os.path.join(root1, 'PM_CNN_6190152.csv')
-file2 = os.path.join(root1, 'IM_CNN_6190152.csv')
+file1 = os.path.join(root1, 'PM_MLP_6191925.csv')
+file2 = os.path.join(root1, 'IM_MLP_6191925.csv')
 file_pathes = [file1, file2]
 
-leverages = [2,4,6,8,12,16,24,48]
-memory_lis =[2,10,20,30,40,50]
+leverages = [1,2,4,8,16]
+memory_lis =[1,2,4,8,16]
 labels = ['(1)Phase Modulation','(2)Intensity Modulation','(3)MZ Modulation','(4)Linear'] 
 
 graph_maker(file_pathes, leverages, memory_lis, labels)

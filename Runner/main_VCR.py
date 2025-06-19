@@ -1,7 +1,9 @@
 import torch
 import sys
 import os
-sys.path.append(os.path.abspath("..")) 
+import numpy as np
+import pandas as pd
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 if torch.cuda.is_available():
     device = torch.device('cuda')
@@ -13,7 +15,6 @@ print(f'Using device: {device}')
 from dataloader.dataloader import load_MNIST_data,load_CINIC10_data,load_CIFAR10_data,load_Fmnist_data
 from train.training import train_nomal,train_for_DEQ
 from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusion_matrix,plot_histograms,create_table,save_csv,convergence_verify,auto_git_push
-
 
 #data---------------------------------------------
 dataset = 'fashion-mnist' # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
@@ -29,9 +30,9 @@ loss_func = 'cross_entropy'
 optimizer = 'adam'
 lr = 0.001
 #param--------------------------------------------
-num_try = 1
-max_epochs = 1
-leverages = [1,2,4,8,16] #enc is not none
+num_try = 3
+max_epochs = 3
+leverages = [1,2,4]#,8,16] #enc is not none
 kernel_size =4
 #save---------------------------------------------
 folder = f'Class_{dataset}_VCR'
@@ -71,4 +72,10 @@ for leverage in leverages:
 
     plot_errorbar_losscurve(All_loss_test)
     create_table(All_test_acc,All_last_loss,All_pro_time)
+
+    All_last_LOSSs_.append(All_last_loss)
+    All_last_ACCs_.append(All_test_acc)
+
 save_csv(folder,ex_name,All_last_LOSSs_,All_last_ACCs_)
+
+

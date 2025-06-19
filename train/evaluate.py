@@ -151,6 +151,7 @@ def plot_histograms(data_train,data_test, dataset, kernel_size, batch_size,enc_t
     plt.tight_layout()
     plt.show()
 
+
 def save_csv(folder,ex_name,data1,data2=None): #結果はonedriveに保存
     save_directory1 = os.path.join(onedrive_path,'Codes','PhotonicEncoder_data',folder)
     print(save_directory1)
@@ -163,6 +164,7 @@ def save_csv(folder,ex_name,data1,data2=None): #結果はonedriveに保存
         if data2 is not None:
             writer.writerow(data2)
     print(f"Saved at: {full_path}")
+
 
 def create_table(All_test_acc,All_last_loss,All_pro_time):
     ACC_mean = np.mean(All_test_acc)
