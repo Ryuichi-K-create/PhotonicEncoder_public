@@ -39,7 +39,7 @@ class IMEncoder(nn.Module):
     def __init__(self,input_dim,output_dim,device='cpu'):
         super(IMEncoder,self).__init__()
         self.B = nn.Parameter(torch.randn(output_dim, 
-                                          input_dim) * (input_dim))
+                                          input_dim) * (1/np.sqrt(input_dim)))
         self.B.requires_grad = False
 
     def forward(self, x):

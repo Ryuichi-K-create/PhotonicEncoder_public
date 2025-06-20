@@ -15,11 +15,11 @@ from dataloader.dataloader import load_MNIST_data,load_CINIC10_data,load_CIFAR10
 from train.training import train_nomal,train_for_DEQ
 from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusion_matrix,plot_histograms,create_table,save_csv,convergence_verify,auto_git_push
 #data---------------------------------------------
-dataset = 'cinic-10' # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
-batch_size = 100 #64 MNIST, 100 CIFAR10, 100 CINIC10 
+dataset = 'mnist' # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
+batch_size = 64 #64 MNIST, 100 CIFAR10, 100 CINIC10 
 #Encoder_Model------------------------------------
-enc_type = 'none' # 'none', 'MZM', 'LI'
-cls_type = 'CNN' # 'MLP' or 'CNN'
+enc_type = 'IM' # 'none', 'MZM', 'LI'
+cls_type = 'MLP' # 'MLP' or 'CNN'
 #class_model--------------------------------------
 num_layer = 2
 fc ='relu'
@@ -28,7 +28,7 @@ loss_func = 'cross_entropy'
 optimizer = 'adam'
 lr = 0.001
 #param--------------------------------------------
-num_try = 5
+num_try = 3
 max_epochs = 10
 leverage = 8 #enc is not none
 kernel_size =4
