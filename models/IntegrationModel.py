@@ -88,7 +88,7 @@ from .Classifiers import MLP_for_10, CNN_for10
 
 class Image10Classifier(nn.Module):#10クラスの画像用
     def __init__(self, dataset,kernel_size,leverage,
-                 enc_type,cls_type,num_layer,fc,device):
+                 enc_type,cls_type,num_layer,fc,dropout,device):
         super(Image10Classifier, self).__init__()
         dataset_config = {
             'mnist':     {'img_size': 28, 'channels': 1},
@@ -122,7 +122,7 @@ class Image10Classifier(nn.Module):#10クラスの画像用
         self.split = split_into_kernels 
         self.enc_type = enc_type
         self.encoder = encoders[enc_type](kernel_in,feat_dim,device) 
-        self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc,self.num_patches).to(device)
+        self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc,self.num_patches,dropout).to(device)
 
     def forward(self, x):
         b=x.size(0)
@@ -140,7 +140,7 @@ from .OtherModels import Cell,DEQFixedPoint,anderson
 #--------------------------------------------------------------------
 class DEQ_Image10Classifier(nn.Module):#10クラスの画像用(DEQ)
     def __init__(self, dataset,kernel_size,leverage,
-                 enc_type,cls_type,num_layer,fc,num_iter,m,tol,beta,device):
+                 enc_type,cls_type,num_layer,fc,dropout,num_iter,m,tol,beta,device):
         super(DEQ_Image10Classifier, self).__init__() #DEQ_Image10Classifier, self
         self.device = device
         dataset_config = {
@@ -174,7 +174,7 @@ class DEQ_Image10Classifier(nn.Module):#10クラスの画像用(DEQ)
                                       tol = tol,
                                       beta = beta,
                                       )
-        self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc).to(device)
+        self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc,self.num_patches,dropout).to(device)
         
     def forward(self, x):
         b=x.size(0)

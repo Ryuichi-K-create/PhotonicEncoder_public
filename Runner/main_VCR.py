@@ -25,6 +25,7 @@ cls_type = 'MLP' # 'MLP' or 'CNN'
 #class_model--------------------------------------
 num_layer = 2
 fc ='relu'
+dropout = 0.0 
 #learning-----------------------------------------
 loss_func = 'cross_entropy'
 optimizer = 'adam'
@@ -60,7 +61,7 @@ for leverage in leverages:
     All_test_acc = []
     for num_times in range(num_try):
 
-        loss_train_,loss_test_,pro_time_,Last_loss_test,Test_acc,all_labels,all_preds = train_nomal(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,data_test,batch_size,device,max_epochs,leverage,enc_type,cls_type,num_layer,fc,kernel_size)
+        loss_train_,loss_test_,pro_time_,Last_loss_test,Test_acc,all_labels,all_preds = train_nomal(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,data_test,batch_size,device,max_epochs,leverage,enc_type,cls_type,num_layer,fc,dropout,kernel_size)
 
         All_loss_test.append(loss_test_)
         All_pro_time.append(sum(pro_time_))
