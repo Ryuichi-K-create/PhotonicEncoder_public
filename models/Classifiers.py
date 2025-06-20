@@ -42,13 +42,13 @@ class CNN_for10(nn.Module):
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
         self.fc1 = nn.Linear(64 * (self.side // 4) * (self.side // 4), 256)
         self.fc2 = nn.Linear(256, 10)
-        func ={
+        funcs ={
             'relu':nn.ReLU(),
             'tanh':nn.Tanh(),
             'leakyrelu':nn.LeakyReLU(),
             'sigmoid':nn.Sigmoid()
         }
-        self.func = func[fc]
+        self.func = funcs[fc]
 
     def forward(self, x,b):
         x = x.view(b, self.side, self.side, -1).permute(0, 3, 1, 2)

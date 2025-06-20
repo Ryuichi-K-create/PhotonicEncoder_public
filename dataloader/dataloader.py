@@ -25,8 +25,8 @@ def load_CIFAR10_data():
         transforms.RandomHorizontalFlip(),
         transforms.RandomCrop(32, padding=4),
         transforms.ToTensor(),
-        transforms.Normalize((0, 0, 0),
-                            (1, 1, 1))])
+        transforms.Normalize((0.5, 0.5, 0.5),
+                            (0.5, 0.5, 0.5))])
     root = os.path.join(os.path.dirname(__file__), 'samples', 'cifar10_data')
     cifar10_train = datasets.CIFAR10(root=root, download=True, train=True, transform=transform)
     cifar10_test = datasets.CIFAR10(root=root, download=True, train=False, transform=transform)
@@ -56,8 +56,8 @@ def load_CINIC10_data():
         transforms.RandomHorizontalFlip(),
         transforms.RandomCrop(32, padding=4),
         transforms.ToTensor(),
-        transforms.Normalize((0, 0, 0),
-                            (1, 1, 1))])
+        transforms.Normalize((0.5, 0.5, 0.5),
+                            (0.5, 0.5, 0.5))])
     root = os.path.join(os.path.dirname(__file__), 'samples', 'cinic10_data','main_data')
     train_dataset = NumpyCINIC10Dataset(img_path=os.path.join(root, 'cinic10_train_imgs.npy'),
                                          label_path=os.path.join(root, 'cinic10_train_labels.npy'),
