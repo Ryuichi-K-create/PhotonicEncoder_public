@@ -31,7 +31,7 @@ lr = 0.001
 #param--------------------------------------------
 num_try = 3
 max_epochs = 10
-leverage = 8 #enc is not none
+leverage = 9 #enc is not none
 kernel_size =4
 #save---------------------------------------------
 folder = f'Class_{dataset}'

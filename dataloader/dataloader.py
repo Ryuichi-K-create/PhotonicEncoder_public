@@ -11,7 +11,7 @@ from sklearn.model_selection import train_test_split
 #--------------------------------------------------------
 def load_Covtype_data():
     test_size = 0.2
-    file_path = os.path.join(os.path.dirname(__file__), 'samples', 'covtype_data', 'covtype.csv')
+    file_path = os.path.join(os.path.dirname(__file__), 'samples',  'covtype.csv')
     data = pd.read_csv(file_path)
     data = data.dropna()
 

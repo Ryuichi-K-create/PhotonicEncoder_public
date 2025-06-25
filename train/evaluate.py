@@ -122,6 +122,7 @@ def plot_histograms(data_train,data_test, dataset, kernel_size, batch_size,enc_t
         'cifar-10':  {'img_size': 32, 'channels': 3},
         'fashion-mnist': {'img_size': 28, 'channels': 1},
         'cifar-100': {'img_size': 32, 'channels': 3},
+        'cinic-10': {'img_size': 32, 'channels': 3}
     }
     
     img_size = dataset_config[dataset]['img_size']

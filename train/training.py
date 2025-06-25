@@ -10,7 +10,7 @@ import time
 import csv
 
 from dataloader.dataloader import get_new_dataloader 
-from models.IntegrationModel import Image10Classifier,DEQ_Image10Classifier
+from models.IntegrationModel import Image10Classifier,DEQ_Image10Classifier,Table10Classifier
 
 def train_nomal(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
                          data_test,batch_size,device,max_epochs,leverage,
@@ -22,7 +22,7 @@ def train_nomal(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
         'cifar-10':Image10Classifier,
         'cinic-10':Image10Classifier,
         'fashion-mnist':Image10Classifier,
-        'covtype':Image10Classifier
+        'covtype':Table10Classifier
     }
     #---------------------------------------------
     loss_funcs = {
@@ -94,7 +94,7 @@ def train_nomal(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
     
     Last_loss_test = loss_test_[-1]
     Test_acc = 100 * correct / total
-    return loss_train_,loss_test_,pro_time_,Last_loss_test,Test_acc,all_labels,all_preds
+    return loss_train_,loss_test_,pro_time_,Last_loss_test,Test_acc,all_labels,all_preds 
 
 
 def train_for_DEQ(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,

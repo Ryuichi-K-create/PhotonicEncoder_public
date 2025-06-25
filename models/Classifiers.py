@@ -3,12 +3,13 @@ import torch.nn as nn
 import numpy as np
 
 class MLP_for_10(nn.Module):#10値分類なら使える。
-    def __init__(self,potential_dim,num_layer = 2,fc='relu',n_patches=64,dropout=0):
+    def __init__(self,potential_dim,num_layer = 2,fc='relu',n_patches=None,dropout=0):
         super(MLP_for_10, self).__init__()
         layers = []
         current_dim = potential_dim
 
-        self.bn = nn.BatchNorm1d(potential_dim//n_patches)
+        if n_patches is not None:
+            self.bn = nn.BatchNorm1d(potential_dim//n_patches)
         func ={
             'relu':nn.ReLU(),
             'tanh':nn.Tanh(),
