@@ -119,9 +119,3 @@ def get_new_dataloader(data_train,data_test,batch_size=64):
     test_dataloader = DataLoader(data_test,batch_size,shuffle=False)
     return train_dataloader, test_dataloader
 #--------------------------------------------------------
-def get_dataloader_for_csv(X,y,test_size=0.2,batch_size=512):
-    
-    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
-    
-    return train_dataloader, test_dataloader

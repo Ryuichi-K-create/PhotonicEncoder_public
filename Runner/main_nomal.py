@@ -11,12 +11,12 @@ else:
     device = torch.device('cpu')
 print(f'Using device: {device}')
 
-from dataloader.dataloader import load_MNIST_data,load_CINIC10_data,load_CIFAR10_data,load_Fmnist_data
+from dataloader.dataloader import load_MNIST_data,load_CINIC10_data,load_CIFAR10_data,load_Fmnist_data,load_Covtype_data
 from train.training import train_nomal,train_for_DEQ
 from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusion_matrix,plot_histograms,create_table,save_csv,convergence_verify,auto_git_push
 #data---------------------------------------------
 dataset = 'covtype' # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist','covtype'
-batch_size = 64 #64 MNIST, 100 CIFAR10, 100 CINIC10 
+batch_size = 512 #64 MNIST, 100 CIFAR10, 128 CINIC10, 64 Fmnist, 512 covtype
 #Encoder_Model------------------------------------
 enc_type = 'PM' # 'none', 'MZM', 'LI'
 cls_type = 'MLP' # 'MLP' or 'CNN'
@@ -36,12 +36,13 @@ kernel_size =4
 #save---------------------------------------------
 folder = f'Class_{dataset}'
 ex_name= f'{enc_type}_{cls_type}'
-
+#-------------------------------------------------
 data_loaders = {
     'cifar-10': load_CIFAR10_data,
     'cinic-10': load_CINIC10_data,
     'mnist': load_MNIST_data,
-    'fashion-mnist':load_Fmnist_data
+    'fashion-mnist':load_Fmnist_data,
+    'covtype': load_Covtype_data
 }
 
 data_train,data_test = data_loaders[dataset]()

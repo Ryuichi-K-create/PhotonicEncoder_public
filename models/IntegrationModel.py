@@ -134,7 +134,34 @@ class Image10Classifier(nn.Module):#10クラスの画像用
             x = self.encoder(x) 
         x = self.classifier(x,b)
         return x
+#--------------------------------------------------------------------
+class Table10Classifier(nn.Module):
+    def __init__(self, dataset,kernel_size,leverage,
+                 enc_type,cls_type,num_layer,fc,dropout,device):
+        super(Table10Classifier, self).__init__()
+        dataset_config = {
+            'covtype' : {'input_dim': 54}, 
+        }
+        encoders = {
+            'PM':PMEncoder,
+            'IM':IMEncoder,
+            'MZM':MZMEncoder,
+            'LI':LIEncoder,
+            'none':PMEncoder
+        }
+        classifiers = {
+            'MLP':MLP_for_10,
+            'CNN':CNN_for10
+        }
+        self.input_dim = dataset_config[dataset]['input_dim']
+        potential_dim = int(self.input_dim//leverage)
+        self.encoder = encoders[enc_type](self.input_dim,leverage,device)
+        self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc,dropout).to(device)
 
+    def forward(self, x):
+        x = self.encoder(x)
+        x = self.classifier(x)
+        return x
 #--------------------------------------------------------------------
 from .OtherModels import Cell,DEQFixedPoint,anderson
 #--------------------------------------------------------------------

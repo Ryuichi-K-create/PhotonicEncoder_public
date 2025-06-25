@@ -21,7 +21,8 @@ def train_nomal(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
         'mnist':Image10Classifier,
         'cifar-10':Image10Classifier,
         'cinic-10':Image10Classifier,
-        'fashion-mnist':Image10Classifier
+        'fashion-mnist':Image10Classifier,
+        'covtype':Image10Classifier
     }
     #---------------------------------------------
     loss_funcs = {
