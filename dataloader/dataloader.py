@@ -4,6 +4,29 @@ from torch.utils.data import DataLoader, Subset, Dataset
 import os
 import numpy as np
 from PIL import Image
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+
+#--------------------------------------------------------
+def load_Covtype_data():
+    test_size = 0.2
+    file_path = os.path.join(os.path.dirname(__file__), 'samples', 'covtype_data', 'covtype.csv')
+    data = pd.read_csv(file_path)
+    data = data.dropna()
+
+    X = data.drop(columns=['Cover_Type'])
+    y_origin = data['Cover_Type']-1
+
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_origin, test_size=test_size, shuffle=True)
+
+    train_dataset = torch.utils.data.TensorDataset(torch.tensor(X_train, dtype=torch.float32),
+                                                   torch.tensor(y_train.values, dtype=torch.long))
+    test_dataset = torch.utils.data.TensorDataset(torch.tensor(X_test, dtype=torch.float32), 
+                                                  torch.tensor(y_test.values, dtype=torch.long))
+    return train_dataset, test_dataset
 #--------------------------------------------------------
 def load_MNIST_data():
     transform = transforms.Compose([transforms.ToTensor(),transforms.Normalize((0,),(1,)),lambda x: x.view(-1)])
@@ -89,8 +112,16 @@ def load_CINIC10_data():
     return(cinic10_train,cinic10_test)
 #--------------------------------------------------------
 
+#--------------------------------------------------------
 def get_new_dataloader(data_train,data_test,batch_size=64):
     train_dataloader = DataLoader(data_train,batch_size,shuffle=True)
     
     test_dataloader = DataLoader(data_test,batch_size,shuffle=False)
+    return train_dataloader, test_dataloader
+#--------------------------------------------------------
+def get_dataloader_for_csv(X,y,test_size=0.2,batch_size=512):
+    
+    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+    
     return train_dataloader, test_dataloader
