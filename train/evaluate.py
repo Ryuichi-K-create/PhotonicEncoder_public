@@ -97,7 +97,7 @@ def plot_confusion_matrix(true_labels,pred_labels,dataset,test_acc):
         'cifar-10': ['plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck'],
         'cinic-10': ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck'],
         'fashion-mnist':['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat', 'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot'],
-        'cavtype':["Spruce/Fir","Lodgepole Pine","Ponderosa Pine",
+        'covtype':["Spruce/Fir","Lodgepole Pine","Ponderosa Pine",
                    "Cottonwood/Willow","Aspen","Douglas-fir","Krummholz" ]
     }
     cm = confusion_matrix(true_labels,pred_labels)

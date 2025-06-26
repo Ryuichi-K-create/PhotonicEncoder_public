@@ -83,7 +83,7 @@ class LIEncoder(nn.Module):
         x = torch.matmul(self.B, x).T  
         return x
 #--------------------------------------------------------------------
-from .Classifiers import MLP_for_10, CNN_for10
+from .Classifiers import MLP_for_10, CNN_for10, MLP_for_7
 #--------------------------------------------------------------------
 
 class Image10Classifier(nn.Module):#10クラスの画像用
@@ -151,17 +151,18 @@ class Table10Classifier(nn.Module):#10クラスの表データ用
             'none':PMEncoder
         }
         classifiers = {
-            'MLP':MLP_for_10,
+            'MLP':MLP_for_7,
             'CNN':CNN_for10
         }
         self.input_dim = dataset_config[dataset]['input_dim']
         potential_dim = int(self.input_dim//leverage)
-        self.encoder = encoders[enc_type](self.input_dim,leverage,device)
-        self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc,dropout).to(device)
+        self.encoder = encoders[enc_type](self.input_dim,potential_dim,device)
+        self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc,n_patches=None,dropout=dropout).to(device)
 
     def forward(self, x):
+        b=x.size(0)
         x = self.encoder(x)
-        x = self.classifier(x)
+        x = self.classifier(x,b)
         return x 
 
 #--------------------------------------------------------------------

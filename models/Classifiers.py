@@ -10,6 +10,8 @@ class MLP_for_10(nn.Module):#10値分類なら使える。
 
         if n_patches is not None:
             self.bn = nn.BatchNorm1d(potential_dim//n_patches)
+        else:
+            self.bn = nn.BatchNorm1d(potential_dim)
         func ={
             'relu':nn.ReLU(),
             'tanh':nn.Tanh(),
@@ -38,9 +40,11 @@ class MLP_for_7(nn.Module):#7値分類なら使える。
         super(MLP_for_7, self).__init__()
         layers = []
         current_dim = potential_dim
-
         if n_patches is not None:
             self.bn = nn.BatchNorm1d(potential_dim//n_patches)
+        else:
+            self.bn = nn.BatchNorm1d(potential_dim)
+        
         func ={
             'relu':nn.ReLU(),
             'tanh':nn.Tanh(),
