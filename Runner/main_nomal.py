@@ -18,19 +18,19 @@ from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusio
 dataset = 'covtype' # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist','covtype'
 batch_size = 512 #64 MNIST, 100 CIFAR10, 128 CINIC10, 64 Fmnist, 512 covtype
 #Encoder_Model------------------------------------
-enc_type = 'PM' # 'none', 'MZM', 'LI'
+enc_type = 'none' # 'none', 'MZM', 'LI'
 cls_type = 'MLP' # 'MLP' or 'CNN'
 #class_model--------------------------------------
-num_layer = 2
+num_layer = 3
 fc ='relu'
 dropout = 0.0 #0.0 for MLP, 0.2 for CNN
 #learning-----------------------------------------
 loss_func = 'cross_entropy'
 optimizer = 'adam'
-lr = 0.001
+lr = 3e-4 #MNIST 0.001, covtype:3e-4
 #param--------------------------------------------
 num_try = 3
-max_epochs = 10
+max_epochs = 50
 leverage = 9 #enc is not none
 kernel_size =4
 #save---------------------------------------------
@@ -45,7 +45,8 @@ data_loaders = {
     'covtype': load_Covtype_data
 }
 
-data_train,data_test = data_loaders[dataset]()
+data_train,data_test,counts = data_loaders[dataset]()
+print(counts)
 if enc_type == 'none':
     leverage = 1
 
