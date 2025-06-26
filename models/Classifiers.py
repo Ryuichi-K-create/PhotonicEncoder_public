@@ -31,6 +31,37 @@ class MLP_for_10(nn.Module):#10値分類なら使える。
         x = x.reshape(b, -1)
         x = self.model(x)
         return x
+    
+
+class MLP_for_7(nn.Module):#7値分類なら使える。
+    def __init__(self,potential_dim,num_layer = 2,fc='relu',n_patches=None,dropout=0):
+        super(MLP_for_7, self).__init__()
+        layers = []
+        current_dim = potential_dim
+
+        if n_patches is not None:
+            self.bn = nn.BatchNorm1d(potential_dim//n_patches)
+        func ={
+            'relu':nn.ReLU(),
+            'tanh':nn.Tanh(),
+            'leakyrelu':nn.LeakyReLU(),
+            'sigmoid':nn.Sigmoid()
+        }
+        ac_func = func[fc]
+        for i in range(num_layer-1):
+            next_dim = max(10,current_dim//2)
+            layers.append(nn.Linear(current_dim,next_dim))
+            layers.append(ac_func)
+            layers.append(nn.Dropout(dropout))
+            current_dim = next_dim
+        layers.append(nn.Linear(current_dim,7))
+        self.model = nn.Sequential(*layers)
+
+    def forward(self, x,b):
+        x = self.bn(x)
+        x = x.reshape(b, -1)
+        x = self.model(x)
+        return x
 
 
 class CNN_for10(nn.Module):
