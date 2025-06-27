@@ -27,7 +27,7 @@ def load_Covtype_data():
     test_dataset = torch.utils.data.TensorDataset(torch.tensor(X_test, dtype=torch.float32), 
                                                   torch.tensor(y_test.values, dtype=torch.long))
     counts = np.bincount(y_origin)
-    return train_dataset, test_dataset,counts
+    return train_dataset, test_dataset
 #--------------------------------------------------------
 def load_MNIST_data():
     transform = transforms.Compose([transforms.ToTensor(),transforms.Normalize((0,),(1,)),lambda x: x.view(-1)])

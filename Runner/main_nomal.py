@@ -15,23 +15,23 @@ from dataloader.dataloader import load_MNIST_data,load_CINIC10_data,load_CIFAR10
 from train.training import train_nomal,train_for_DEQ
 from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusion_matrix,plot_histograms,create_table,save_csv,convergence_verify,auto_git_push
 #data---------------------------------------------
-dataset = 'covtype' # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist','covtype'
-batch_size = 512 #64 MNIST, 100 CIFAR10, 128 CINIC10, 64 Fmnist, 512 covtype
+dataset = 'cinic-10' # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist','covtype'
+batch_size = 100 #64 MNIST, 100 CIFAR10, 128 CINIC10, 64 Fmnist, 512 covtype
 #Encoder_Model------------------------------------
-enc_type = 'none' # 'none', 'MZM', 'LI'
-cls_type = 'MLP' # 'MLP' or 'CNN'
+enc_type = 'PM' # 'none', 'MZM', 'LI'
+cls_type = 'CNN' # 'MLP' or 'CNN'
 #class_model--------------------------------------
-num_layer = 3
+num_layer = 2
 fc ='relu'
 dropout = 0.0 #0.0 for MLP, 0.2 for CNN
 #learning-----------------------------------------
 loss_func = 'cross_entropy'
 optimizer = 'adam'
-lr = 3e-4 #MNIST 0.001, covtype:3e-4
+lr = 0.001 #MNIST 0.001, covtype:3e-4
 #param--------------------------------------------
 num_try = 3
-max_epochs = 50
-leverage = 9 #enc is not none
+max_epochs = 20
+leverage = 8 #enc is not none
 kernel_size =4
 #save---------------------------------------------
 folder = f'Class_{dataset}'
@@ -45,8 +45,7 @@ data_loaders = {
     'covtype': load_Covtype_data
 }
 
-data_train,data_test,counts = data_loaders[dataset]()
-print(counts)
+data_train,data_test = data_loaders[dataset]()
 if enc_type == 'none':
     leverage = 1
 
@@ -68,4 +67,4 @@ for num_times in range(num_try):
 
 plot_errorbar_losscurve(All_loss_test)
 create_table(All_test_acc,All_last_loss,All_pro_time)
-save_csv(folder,ex_name,All_loss_test)
+# save_csv(folder,ex_name,All_loss_test)
