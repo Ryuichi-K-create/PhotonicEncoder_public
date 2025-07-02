@@ -1,6 +1,5 @@
 import torch
 import os
-import platform
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 rcParams['font.family'] = 'Times New Roman'
@@ -14,7 +13,6 @@ import random
 from dataloader.dataloader import get_new_dataloader 
 from models.IntegrationModel import split_into_kernels, PMEncoder,IMEncoder,MZMEncoder,LIEncoder,DEQ_Image10Classifier
 from models.OtherModels import Cell,anderson
-import subprocess
 colors = [
     "#1f77b4",  # 青
     "#ff7f0e",  # オレンジ
@@ -28,36 +26,8 @@ colors = [
     "#17becf",  # 水色
 ]
 
-now = datetime.now()
-formatted_time = now.strftime("%m%d%H%M")
-formatted_time = int(formatted_time)
-
-home_directory = os.path.expanduser('~')
-system_type = platform.system()
-
-# デフォルトの OneDrive フォルダ名
-onedrive_path = None
-if system_type == "Windows":
-    # Windows では環境変数が使える（MS公式な方法）
-    onedrive_path = os.environ.get("OneDrive")
-    if onedrive_path is None:
-        # フォールバック
-        onedrive_path = os.path.join(home_directory, "OneDrive")
-elif system_type == "Darwin": 
-    onedrive_path = os.path.join(home_directory, "Library", "CloudStorage", "OneDrive-個人用(2)")
 
 #------------------------------------------------------------------------------------------
-def auto_git_push(branch_name,commit_msg="Auto commit"):
-    commit_msg = f"{formatted_time}_{commit_msg}"
-    try:
-        subprocess.run(["git", "add", "."], check=True)
-        subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-        subprocess.run(["git", "push","origin",branch_name], check=True)
-        print("✅ Git push 完了！")
-    except subprocess.CalledProcessError as e:
-        print("❌ Git操作でエラー:", e)
-
-
 def plot_loss_curve(train_loss,test_loss):
     plt.figure(figsize=(6,4.5))
     plt.plot(range(1,len(train_loss)+1),train_loss,label='training',color='blue')
@@ -68,7 +38,7 @@ def plot_loss_curve(train_loss,test_loss):
     plt.legend()
     plt.grid(True)
     plt.show
-
+#------------------------------------------------------------------------------------------
 def plot_errorbar_losscurve(All_loss_test):
     epochs = len(All_loss_test[0]) 
     num_dimensions = len(All_loss_test)
@@ -89,7 +59,7 @@ def plot_errorbar_losscurve(All_loss_test):
     #plt.ylim(1.0,2.0)
     plt.show()
 
-
+#------------------------------------------------------------------------------------------
 def plot_confusion_matrix(true_labels,pred_labels,dataset,test_acc):
 
     num_labels = {
@@ -109,7 +79,7 @@ def plot_confusion_matrix(true_labels,pred_labels,dataset,test_acc):
     plt.ylabel('True label')
     plt.title(f"Overall Correction Rate:{test_acc:.2f}%")
     plt.show()
-
+#------------------------------------------------------------------------------------------
 def plot_histograms(data_train,data_test, dataset, kernel_size, batch_size,enc_type): #画像専用
     encoders = {
         'PM':PMEncoder,
@@ -152,21 +122,7 @@ def plot_histograms(data_train,data_test, dataset, kernel_size, batch_size,enc_t
     plt.tight_layout()
     plt.show()
 
-
-def save_csv(folder,ex_name,data1,data2=None): #結果はonedriveに保存
-    save_directory1 = os.path.join(onedrive_path,'Codes','PhotonicEncoder_data',folder)
-    print(save_directory1)
-    os.makedirs(save_directory1, exist_ok=True)
-    file_name = f'{ex_name}_{formatted_time}.csv'##
-    full_path = os.path.join(save_directory1, file_name)
-    with open(full_path, mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(data1)
-        if data2 is not None:
-            writer.writerow(data2)
-    print(f"Saved at: {full_path}")
-
-
+#------------------------------------------------------------------------------------------
 def create_table(All_test_acc,All_last_loss,All_pro_time):
     ACC_mean = np.mean(All_test_acc)
     ACC_best = np.max(All_test_acc)
@@ -196,7 +152,7 @@ def create_table(All_test_acc,All_last_loss,All_pro_time):
     }
     df = pd.DataFrame(data)
     print(df)
-
+#------------------------------------------------------------------------------------------
 def convergence_verify(dataset,num_iter,m,tol,beta,data_train,data_test,kernel_size,enc_type,leverage,device):
     dataset_config = {
         'mnist':     {'img_size': 28, 'channels': 1},
@@ -248,7 +204,7 @@ def convergence_verify(dataset,num_iter,m,tol,beta,data_train,data_test,kernel_s
     plt.tight_layout()
     plt.show()
 
-
+#------------------------------------------------------------------------------------------
 def show_images(images,labels,dataset,fixed_indices):
     dataset_config = {
     'mnist':     {'img_size': 28, 'channels': 1, 'title': "MNIST Original Images"},
@@ -296,6 +252,7 @@ def show_images(images,labels,dataset,fixed_indices):
             axes[i].axis('off')  # 該当クラスがない場合は非表示
     plt.suptitle(title)
 
+#------------------------------------------------------------------------------------------
 def graph_maker(file_pathes,leverages,memory_lis,labels):
 
     fmts =  ['-o', '-s', '-^', '-D']  # 各モデルのプロットスタイル
@@ -352,3 +309,4 @@ def graph_maker(file_pathes,leverages,memory_lis,labels):
     ax2.legend(fontsize=15, loc='upper left', bbox_to_anchor=(1.0, 1))
     ax2.grid(True)
     plt.show()
+

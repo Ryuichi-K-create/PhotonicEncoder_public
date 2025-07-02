@@ -14,7 +14,7 @@ from models.IntegrationModel import Image10Classifier,DEQ_Image10Classifier,Tabl
 
 def train_nomal(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
                          data_test,batch_size,device,max_epochs,leverage,
-                         enc_type,cls_type,num_layer,fc,dropout,kernel_size=4,
+                         enc_type,cls_type,num_layer,fc,dropout,kernel_size
                          ):
     #---------------------------------------------
     models = {
