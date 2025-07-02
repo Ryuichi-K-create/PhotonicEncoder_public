@@ -34,16 +34,17 @@ def auto_git_push(branch_name,commit_msg="Auto commit"):
         print("❌ Git操作でエラー:", e)
 
 #--------------------------------------------------------------------------------
-def save_csv(folder,ex_name,data1,data2=None): #結果はonedriveに保存
-    save_directory1 = os.path.join(onedrive_path,'Codes','PhotonicEncoder_data',folder)
-    print(save_directory1)
-    os.makedirs(save_directory1, exist_ok=True)
-    file_name = f'{ex_name}_{formatted_time}.csv'##
-    full_path = os.path.join(save_directory1, file_name)
+def save_csv(datas,variable_param,num_times,dataset,enc_type,cls_type): #結果はonedriveに保存
+    save_directory = os.path.join(onedrive_path,'PhotonicEncoder_data',dataset,f'{variable_param}_variable',enc_type,cls_type)
+    os.makedirs(save_directory, exist_ok=True)
+    file_name = f'{num_times+1}th_{formatted_time}.csv'##
+    full_path = os.path.join(save_directory, file_name)
     with open(full_path, mode='w', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(data1)
-        if data2 is not None:
-            writer.writerow(data2)
+        for data in datas:
+            if isinstance(data,(int,float)):
+                writer.writerow([data])
+            else:
+                writer.writerow(data)
     print(f"Saved at: {full_path}")
 

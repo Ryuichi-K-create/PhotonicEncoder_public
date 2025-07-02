@@ -17,7 +17,10 @@ from train.training import train_nomal,train_for_DEQ
 from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusion_matrix,plot_histograms,create_table,convergence_verify
 from result_management.data_manager import save_csv,auto_git_push
 
+variable_param = "leverage" #ここで設定した項目は配列にすること(none,leverage)
+
 params = {
+    'none':[1], #variable_param=noneの際は1回だけ繰り返す
     #data---------------------------------------------
     'dataset': 'fashion-mnist', # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
     'batch_size': 100, #64 MNIST, 100 CIFAR10, 100 CINIC10
@@ -37,14 +40,13 @@ params = {
     'lr': 0.001,
 
     #param--------------------------------------------
-    'num_try': 3,
+    'num_try': 2,
     'max_epochs': 3,
-    'leverages': [1, 2, 4], #,8,16] #enc is not none
+    'leverage': [1, 2, 4], #,8,16] #enc is not none
     'kernel_size': 4
 }
 #save---------------------------------------------
-folder = f'Class_{params["dataset"]}_VCR'
-ex_name= f'{params["enc_type"]}_{params["cls_type"]}'
+folder_params = {k: params[k] for k in ['dataset', 'enc_type', 'cls_type']}
 
 
 data_loaders = {
@@ -61,22 +63,30 @@ results = []
 All_last_LOSSs_ = []
 All_last_ACCs_ = []
 
-for leverage in params['leverages']:
-    print(f'----------------------Running with leverage: {leverage}----------------------')
+for variable in params[variable_param]: #variable:leverage,alpha
+    print(f'----------------------Running with {variable_param}: {variable}----------------------')
     All_last_loss = []
     All_loss_test = []
     All_pro_time = []
     All_test_acc = []
 
     for num_times in range(params['num_try']):
-        params_for_train = {k: v for k,v in params.items() if k != 'leverages'}
-        params_for_train.update({'num_times': num_times, 'leverage': leverage,'device': device})
+        params_for_train = {k: v for k,v in params.items() if k not in ('none',variable_param)}#配列を除外
+
+        if variable_param != 'none': #leverageやalpha可変のとき
+            params_for_train.update({'num_times': num_times, variable_param: variable,'device': device})
+        else: #パラメータ不変のとき
+            params_for_train.update({'num_times': num_times,'device': device})
+        
+        #-----------training-----------
         loss_train_,loss_test_,pro_time_,Last_loss_test,Test_acc,all_labels,all_preds = train_nomal(**params_for_train,data_train=data_train,data_test=data_test)
 
         All_loss_test.append(loss_test_)
         All_pro_time.append(sum(pro_time_))
         All_last_loss.append(Last_loss_test)
         All_test_acc.append(Test_acc)
+        datas = [loss_train_,loss_test_,all_labels,all_preds,Test_acc]
+        save_csv(datas,variable_param,num_times,**folder_params)
 
         plot_loss_curve(loss_train_,loss_test_)
         plot_confusion_matrix(all_labels,all_preds,params["dataset"],Test_acc)
@@ -87,6 +97,5 @@ for leverage in params['leverages']:
     All_last_LOSSs_.append(All_last_loss)
     All_last_ACCs_.append(All_test_acc)
 
-save_csv(folder,ex_name,All_last_LOSSs_,All_last_ACCs_)
-
-
+datas = [All_last_LOSSs_,All_last_ACCs_]
+save_csv(datas,variable_param,num_times,**folder_params)
