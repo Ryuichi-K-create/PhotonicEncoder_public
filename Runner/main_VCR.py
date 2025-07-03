@@ -17,16 +17,16 @@ from train.training import train_nomal,train_for_DEQ
 from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusion_matrix,plot_histograms,create_table,convergence_verify
 from result_management.data_manager import save_csv,auto_git_push
 
-variable_param = "leverage" #ここで設定した項目は配列にすること(none,leverage)
+variable_param = "leverage" #ここで設定した項目は配列にすること(none,leverage,alpha)
 
 params = {
-    'none':[1], #variable_param=noneの際は1回だけ繰り返す
+    'none':[0], #variable_param=noneの際は1回だけ繰り返す
     #data---------------------------------------------
     'dataset': 'fashion-mnist', # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
     'batch_size': 100, #64 MNIST, 100 CIFAR10, 100 CINIC10
 
     #Encoder_Model--------------------------------
-    'enc_type': 'PM', # 'none', 'MZM', 'LI'
+    'enc_type': 'IM', # 'none', 'MZM', 'LI'
     'cls_type': 'MLP', # 'MLP' or 'CNN'
 
     #class_model--------------------------------------
@@ -42,7 +42,7 @@ params = {
     #param--------------------------------------------
     'num_try': 2,
     'max_epochs': 3,
-    'leverage': [1, 2, 4], #,8,16] #enc is not none
+    'leverage': [1,2,4,8,16], #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
     'kernel_size': 4
 }
 #save---------------------------------------------
@@ -62,6 +62,7 @@ if params["enc_type"] == 'none':
 results = []
 All_last_LOSSs_ = []
 All_last_ACCs_ = []
+All_TIMEs_ = []
 
 for variable in params[variable_param]: #variable:leverage,alpha
     print(f'----------------------Running with {variable_param}: {variable}----------------------')
@@ -86,16 +87,21 @@ for variable in params[variable_param]: #variable:leverage,alpha
         All_last_loss.append(Last_loss_test)
         All_test_acc.append(Test_acc)
         datas = [loss_train_,loss_test_,all_labels,all_preds,Test_acc]
-        save_csv(datas,variable_param,num_times,**folder_params)
+        save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='trial')
 
-        plot_loss_curve(loss_train_,loss_test_)
-        plot_confusion_matrix(all_labels,all_preds,params["dataset"],Test_acc)
+        # plot_loss_curve(loss_train_,loss_test_)
+        # plot_confusion_matrix(all_labels,all_preds,params["dataset"],Test_acc)
 
-    plot_errorbar_losscurve(All_loss_test)
-    create_table(All_test_acc,All_last_loss,All_pro_time)
+    datas = [All_loss_test,All_test_acc,All_last_loss,All_pro_time]
+    save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='mid')
 
-    All_last_LOSSs_.append(All_last_loss)
+    # plot_errorbar_losscurve(All_loss_test)
+    # create_table(All_test_acc,All_last_loss,All_pro_time)
+
     All_last_ACCs_.append(All_test_acc)
+    All_last_LOSSs_.append(All_last_loss)
+    All_TIMEs_.append(All_pro_time)
 
-datas = [All_last_LOSSs_,All_last_ACCs_]
-save_csv(datas,variable_param,num_times,**folder_params)
+if variable_param != 'none':
+    datas = [All_last_ACCs_,All_last_LOSSs_,All_TIMEs_]
+    save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='final') #最終保存

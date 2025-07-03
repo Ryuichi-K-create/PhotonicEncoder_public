@@ -34,10 +34,17 @@ def auto_git_push(branch_name,commit_msg="Auto commit"):
         print("❌ Git操作でエラー:", e)
 
 #--------------------------------------------------------------------------------
-def save_csv(datas,variable_param,num_times,dataset,enc_type,cls_type): #結果はonedriveに保存
-    save_directory = os.path.join(onedrive_path,'PhotonicEncoder_data',dataset,f'{variable_param}_variable',enc_type,cls_type)
+def save_csv(datas,variable_param,variable,num_times,dataset,enc_type,cls_type,save_type): #結果はonedriveに保存
+    save_directory = os.path.join(onedrive_path,'PhotonicEncoder_data',dataset,f'{variable_param}_variable',enc_type,cls_type,str(formatted_time))
     os.makedirs(save_directory, exist_ok=True)
-    file_name = f'{num_times+1}th_{formatted_time}.csv'##
+
+    if save_type == 'trial':
+        file_name = f'{variable}{variable_param}_{num_times+1}th_.csv'##
+    elif save_type=='mid':
+        file_name = f'{variable}{variable_param}_mid.csv'
+    elif save_type == 'final':
+        file_name = f'Final_results.csv'
+    
     full_path = os.path.join(save_directory, file_name)
     with open(full_path, mode='w', newline='') as file:
         writer = csv.writer(file)
