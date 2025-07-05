@@ -11,7 +11,7 @@ cls_type = 'MLP'
 formatted_time = '7052014'  # 例: 'mmddyyyy'
 variable_value = 2  # 例: variableの値
 num_times = 1  # 試行回数
-
+#--------------------------------------------------------
 # フォルダパス
 folder_path = os.path.join(dataset, variable_param + '_variable', enc_type, cls_type, formatted_time)
 

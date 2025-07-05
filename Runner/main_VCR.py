@@ -17,12 +17,12 @@ from train.training import train_nomal,train_for_DEQ
 from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusion_matrix,plot_histograms,create_table,convergence_verify
 from result_management.data_manager import save_csv,auto_git_push
 
-variable_param = "none" #ここで設定した項目は配列にすること(none,leverage,alpha)
+variable_param = "leverage" #ここで設定した項目は配列にすること(none,leverage,alpha)
 
 params = {
     'none':[0], #variable_param=noneの際は1回だけ繰り返す
     #data---------------------------------------------
-    'dataset': 'mnist', # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
+    'dataset': 'fashion-mnist', # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
     'batch_size': 100, #64 MNIST, 100 CIFAR10, 100 CINIC10
 
     #Encoder_Model--------------------------------
@@ -42,7 +42,7 @@ params = {
     #param--------------------------------------------
     'num_try': 2,
     'max_epochs': 3,
-    'leverage': 8, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
+    'leverage': [1,2,4,8,16], #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
     'kernel_size': 4
 }
 #save---------------------------------------------
