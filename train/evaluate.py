@@ -10,6 +10,7 @@ import csv
 from datetime import datetime
 from sklearn.metrics import confusion_matrix
 import random
+import tempfile
 from dataloader.dataloader import get_new_dataloader 
 from models.IntegrationModel import split_into_kernels, PMEncoder,IMEncoder,MZMEncoder,LIEncoder,DEQ_Image10Classifier
 from models.OtherModels import Cell,anderson
@@ -28,7 +29,7 @@ colors = [
 
 
 #------------------------------------------------------------------------------------------
-def plot_loss_curve(train_loss,test_loss):
+def plot_loss_curve(train_loss,test_loss,Save=False,Show=False):
     plt.figure(figsize=(6,4.5))
     plt.plot(range(1,len(train_loss)+1),train_loss,label='training',color='blue')
     plt.plot(range(1,len(test_loss)+1),test_loss,label='test',color='cyan')
@@ -37,9 +38,16 @@ def plot_loss_curve(train_loss,test_loss):
     plt.title('Loss Curve')
     plt.legend()
     plt.grid(True)
-    plt.show
+    if Show:
+        plt.show()
+    if Save:
+        tmp_img = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
+        plt.savefig(tmp_img.name)
+        plt.close(plt.gcf())
+        return tmp_img.name
+        
 #------------------------------------------------------------------------------------------
-def plot_errorbar_losscurve(All_loss_test):
+def plot_errorbar_losscurve(All_loss_test, Save=False, Show=False):
     epochs = len(All_loss_test[0]) 
     num_dimensions = len(All_loss_test)
     mean_loss = np.mean(All_loss_test, axis=0)
@@ -57,10 +65,16 @@ def plot_errorbar_losscurve(All_loss_test):
     ax1.tick_params(axis='y', labelcolor='blue')
     plt.title('LOSS Transition in Test data')
     #plt.ylim(1.0,2.0)
-    plt.show()
+    if Show:
+        plt.show()
+    if Save:
+        tmp_img = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
+        plt.savefig(tmp_img.name)
+        plt.close(plt.gcf())
+        return tmp_img.name
 
 #------------------------------------------------------------------------------------------
-def plot_confusion_matrix(true_labels,pred_labels,dataset,test_acc):
+def plot_confusion_matrix(true_labels,pred_labels,dataset,test_acc,Save=False,Show=False):
 
     num_labels = {
         'mnist':range(10),
@@ -78,7 +92,13 @@ def plot_confusion_matrix(true_labels,pred_labels,dataset,test_acc):
     plt.xlabel('Predicted label')
     plt.ylabel('True label')
     plt.title(f"Overall Correction Rate:{test_acc:.2f}%")
-    plt.show()
+    if Show:
+        plt.show()
+    if Save:
+        tmp_img = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
+        plt.savefig(tmp_img.name)
+        plt.close(plt.gcf())
+        return tmp_img.name
 #------------------------------------------------------------------------------------------
 def plot_histograms(data_train,data_test, dataset, kernel_size, batch_size,enc_type): #画像専用
     encoders = {
@@ -123,7 +143,7 @@ def plot_histograms(data_train,data_test, dataset, kernel_size, batch_size,enc_t
     plt.show()
 
 #------------------------------------------------------------------------------------------
-def create_table(All_test_acc,All_last_loss,All_pro_time):
+def create_table(All_test_acc,All_last_loss,All_pro_time,Save=False):
     ACC_mean = np.mean(All_test_acc)
     ACC_best = np.max(All_test_acc)
     ACC_bestID = np.argmax(All_test_acc) + 1
@@ -152,6 +172,8 @@ def create_table(All_test_acc,All_last_loss,All_pro_time):
     }
     df = pd.DataFrame(data)
     print(df)
+    if Save:
+        return df
 #------------------------------------------------------------------------------------------
 def convergence_verify(dataset,num_iter,m,tol,beta,data_train,data_test,kernel_size,enc_type,leverage,device):
     dataset_config = {

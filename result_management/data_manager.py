@@ -4,6 +4,13 @@ from datetime import datetime
 import subprocess
 import csv
 import ast
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from reportlab.lib.utils import ImageReader
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.lib import colors
+
+from train.evaluate import plot_loss_curve, plot_confusion_matrix, plot_errorbar_losscurve, create_table
 
 now = datetime.now()
 formatted_time = now.strftime("%m%d%H%M")
@@ -101,13 +108,6 @@ def load_csv_data(folder_path,file_name):
 #--------------------------------------------------------------------------------
 
 def save_experiment_report(variable_param, params):
-    """
-    NN実験のパラメータを日本語でわかりやすくまとめ、指定フォルダにreport.txtとして保存する関数
-    Args:
-        variable_param (str): 可変パラメータ名
-        params (dict): 実験パラメータ辞書
-        folder_params (dict): 保存先フォルダ情報（dataset, enc_type, cls_type）
-    """
     # 保存先ディレクトリの構築
     save_directory = os.path.join(onedrive_path,'PhotonicEncoder_data',params['dataset'],
                                   f'{variable_param}_variable', params['enc_type'], params['cls_type'], str(formatted_time))
@@ -129,5 +129,116 @@ def save_experiment_report(variable_param, params):
         f.write('\n'.join(lines))
     print(f"実験パラメータ報告書を保存しました: {report_path}")
 
-# 例: 実行
-# save_experiment_report(variable_param, params, folder_params)
+#--------------------------------------------------------------------------------
+def create_result_pdf(variable_param, params):
+    folder_path = os.path.join(onedrive_path, 'PhotonicEncoder_data', params['dataset'],f"{variable_param}_variable", params['enc_type'], params['cls_type'], params['formatted_time'])
+    file_name = 'experiment_report.pdf'
+    c = canvas.Canvas(f"{folder_path}/{file_name}", pagesize=A4)
+    width, height = A4
+
+    # --- レイアウト設定 ---
+    IMG_WIDTH = 200
+    IMG_HEIGHT = 180
+    H_GAP = 20  # 水平方向のギャップ
+    V_GAP = 40  # 垂直方向のギャップ
+    TOP_MARGIN = 50
+    BOTTOM_MARGIN = 50
+    
+    center_x = width / 2
+    left_x = center_x - IMG_WIDTH - H_GAP / 2
+    right_x = center_x + H_GAP / 2
+    
+    current_y = height - TOP_MARGIN
+
+    def new_page_check(required_height):
+        nonlocal current_y, c
+        if current_y - required_height < BOTTOM_MARGIN:
+            c.showPage()
+            current_y = height - TOP_MARGIN
+            return True
+        return False
+
+    # --- PDF生成開始 ---
+    
+    # 全体タイトル
+    c.setFont("Times-Roman", 20)
+    c.drawCentredString(center_x, current_y, "Experiment Result Report")
+    current_y -= 40
+
+    # 可変パラメータごとのループ
+    for variable in params[variable_param]:
+        # セクションタイトル
+        if new_page_check(30):
+             c.drawCentredString(center_x, current_y, "Experiment Result Report (Cont.)")
+             current_y -= 40
+        c.setFont("Times-Roman", 16)
+        c.drawString(left_x, current_y, f"Variable: {variable_param} = {variable}")
+        current_y -= 30
+
+        # 試行ごとのループ
+        for num_times in range(params['num_try']):
+            if new_page_check(IMG_HEIGHT + 20): # ラベル分+画像
+                c.setFont("Times-Roman", 16)
+                c.drawString(left_x, current_y, f"Variable: {variable_param} = {variable} (Cont.)")
+                current_y -= 30
+
+            trial_file_name = f"{variable}{variable_param}_{num_times+1}th_.csv"
+            loss_train_, loss_test_, all_labels, all_preds, Test_acc = load_csv_data(folder_path, trial_file_name)
+            
+            c.setFont("Times-Roman", 12)
+            c.drawString(left_x, current_y, f"Trial #{num_times+1}: Loss Curve")
+            c.drawString(right_x, current_y, f"Trial #{num_times+1}: Confusion Matrix")
+            current_y -= (IMG_HEIGHT + 15)
+
+            loss_curve_name = plot_loss_curve(loss_train_, loss_test_, Save=True)
+            confusion_name = plot_confusion_matrix(all_labels, all_preds, params['dataset'], Test_acc, Save=True)
+            c.drawImage(ImageReader(loss_curve_name), left_x, current_y, width=IMG_WIDTH, height=IMG_HEIGHT, preserveAspectRatio=True)
+            c.drawImage(ImageReader(confusion_name), right_x, current_y, width=IMG_WIDTH, height=IMG_HEIGHT, preserveAspectRatio=True)
+            current_y -= V_GAP
+
+        # 中間結果
+        if new_page_check(IMG_HEIGHT + 20):
+            c.setFont("Times-Roman", 16)
+            c.drawString(left_x, current_y, f"Variable: {variable_param} = {variable} (Cont.)")
+            current_y -= 30
+
+        mid_file_name = f"{variable}{variable_param}_mid.csv"
+        All_loss_test, All_test_acc, All_last_loss, All_pro_time = load_csv_data(folder_path, mid_file_name)
+        
+        # Errorbar Loss
+        c.setFont("Times-Roman", 12)
+        c.drawString(left_x, current_y, "Average Loss Curve")
+        current_y -= (IMG_HEIGHT + 15)
+        error_loss_name = plot_errorbar_losscurve(All_loss_test, Save=True)
+        c.drawImage(ImageReader(error_loss_name), left_x, current_y, width=IMG_WIDTH, height=IMG_HEIGHT, preserveAspectRatio=True)
+
+        # Table
+        df = create_table(All_test_acc, All_last_loss, All_pro_time)
+        if df is not None:
+            table_data = [df.columns.tolist()] + df.values.tolist()
+            table = Table(table_data, colWidths=[50, 60, 50, 50, 50, 50])
+            table.setStyle(TableStyle([
+                ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+                ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+                ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+                ('FONTNAME', (0,1), (-1,-1), 'Helvetica'),
+                ('FONTSIZE', (0,0), (-1,-1), 8),
+                ('GRID', (0,0), (-1,-1), 0.5, 'black'),
+            ]))
+            
+            t_w, t_h = table.wrapOn(c, 0, 0)
+            
+            c.setFont("Times-Roman", 12)
+            c.drawString(right_x, current_y + IMG_HEIGHT - t_h -15, "Statistics Summary")
+            table.drawOn(c, right_x, current_y + IMG_HEIGHT - t_h - 30)
+        else:
+            c.setFont("Times-Roman", 12)
+            c.drawString(right_x, current_y + IMG_HEIGHT - 30, "Statistics Summary")
+            c.drawString(right_x, current_y + IMG_HEIGHT - 45, "(No data to display)")
+        
+        current_y -= (IMG_HEIGHT + V_GAP)
+        c.showPage() #可変パラメータごとに改ページ
+        current_y = height - TOP_MARGIN
+        
+    c.save()
+    print(f"PDFファイルを保存しました: {folder_path}/{file_name}")
