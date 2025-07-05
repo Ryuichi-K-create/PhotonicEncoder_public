@@ -270,9 +270,8 @@ def graph_maker(file_pathes,leverages,memory_lis,labels):
         with open(file_path, 'r') as file:
             reader = csv.reader(file)
             rows = list(reader)
-        All_last_LOSSs_ = np.array([eval(row) for row in rows[0]]) 
-        print(np.array(All_last_LOSSs_).shape)
-        All_last_ACCs_ = np.array([eval(row) for row in rows[1]]) 
+        All_last_ACCs_ = np.array([eval(row) for row in rows[0]])
+        All_last_LOSSs_ = np.array([eval(row) for row in rows[1]]) 
         All_last_LOSSs_ = np.array(All_last_LOSSs_)
         All_last_ACCs_ = np.array(All_last_ACCs_)
 

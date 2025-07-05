@@ -3,6 +3,7 @@ import platform
 from datetime import datetime
 import subprocess
 import csv
+import ast
 
 now = datetime.now()
 formatted_time = now.strftime("%m%d%H%M")
@@ -56,22 +57,44 @@ def save_csv(datas,variable_param,variable,num_times,dataset,enc_type,cls_type,s
     print(f"Saved at: {full_path}")
 
 #--------------------------------------------------------------------------------
-def load_trial_data(csv_file_path):
+def load_csv_data(folder_path,file_name):
     try:
-        # フルパスを構築
-        full_path = os.path.join(onedrive_path, csv_file_path)
+        full_path = os.path.join(onedrive_path, 'PhotonicEncoder_data', folder_path, file_name)
         with open(full_path, 'r', newline='') as file:
             reader = csv.reader(file)
             rows = list(reader)
-            # データの復元
-            loss_train_ = [float(x) for x in rows[0] if x and x.strip()]
-            loss_test_ = [float(x) for x in rows[1] if x and x.strip()]
-            all_labels = [int(x) for x in rows[2] if x and x.strip()]
-            all_preds = [int(x) for x in rows[3] if x and x.strip()]
-            Test_acc = float(rows[4][0])
-            
-            return loss_train_, loss_test_, all_labels, all_preds, Test_acc
-            
+            datas = []
+            for row in rows:
+                print(f"Evaluating: {row}")
+                # 空要素除去
+                row = [x for x in row if x and x.strip()]
+                if not row:
+                    datas.append([])
+                    continue
+                # すべてfloat変換できるか
+                try:
+                    converted = [float(x) for x in row]
+                    # すべてint変換できるか
+                    if all(float(x).is_integer() for x in row):
+                        print(f"Evaluating1: {row}")
+                        converted = [int(float(x)) for x in row]
+                    datas.append(converted if len(converted) > 1 else converted[0])
+
+                except Exception:
+                    if all(isinstance(x, str) and x.startswith('[') and x.endswith(']') for x in row):
+                        print(f"Evaluating2: {row}")
+                        try:
+                            converted = [ast.literal_eval(x) for x in row]
+                            datas.append(converted)
+                        except Exception:
+                            print(f"Evaluating3: {row}")
+                            datas.append(row[0])
+                    else:
+                        print(f"Evaluating4: {row}")
+                        datas.append(row if len(row) > 1 else row[0])
+                print(f"Final Evaluating: {row}")
+            return tuple(datas)
     except Exception as e:
-        print(f"Error loading data from {csv_file_path}: {e}")
-        return None, None, None, None, None
+        print(f"Error loading data from {folder_path}: {e}")
+        return tuple(None for _ in range(len(rows))) if 'rows' in locals() else ()
+
