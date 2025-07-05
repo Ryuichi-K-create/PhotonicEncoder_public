@@ -301,7 +301,6 @@ def graph_maker(file_pathes,leverages,memory_lis,labels):
     ax1.set_ylabel('LOSS', fontsize=15)
     ax1.grid(True)
 
-
     ax2.set_xlabel('Compression Ratio ', fontsize=15)
     ax2.set_xticks(memory_lis)
     ax2.set_xticklabels([f"1:{x}" for x in memory_lis])
@@ -310,3 +309,4 @@ def graph_maker(file_pathes,leverages,memory_lis,labels):
     ax2.grid(True)
     plt.show()
 
+#-----------------------------------------------------------

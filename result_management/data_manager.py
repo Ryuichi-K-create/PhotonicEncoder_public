@@ -55,3 +55,23 @@ def save_csv(datas,variable_param,variable,num_times,dataset,enc_type,cls_type,s
                 writer.writerow(data)
     print(f"Saved at: {full_path}")
 
+#--------------------------------------------------------------------------------
+def load_trial_data(csv_file_path):
+    try:
+        # フルパスを構築
+        full_path = os.path.join(onedrive_path, csv_file_path)
+        with open(full_path, 'r', newline='') as file:
+            reader = csv.reader(file)
+            rows = list(reader)
+            # データの復元
+            loss_train_ = [float(x) for x in rows[0] if x and x.strip()]
+            loss_test_ = [float(x) for x in rows[1] if x and x.strip()]
+            all_labels = [int(x) for x in rows[2] if x and x.strip()]
+            all_preds = [int(x) for x in rows[3] if x and x.strip()]
+            Test_acc = float(rows[4][0])
+            
+            return loss_train_, loss_test_, all_labels, all_preds, Test_acc
+            
+    except Exception as e:
+        print(f"Error loading data from {csv_file_path}: {e}")
+        return None, None, None, None, None
