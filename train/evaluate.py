@@ -163,12 +163,12 @@ def create_table(All_test_acc,All_last_loss,All_pro_time,Save=False):
     PRO_worstID = np.argmax(All_pro_time) + 1
 
     data = {
-        "": ["ACC", "LOSS", "TIME"],
-        "Average": [ACC_mean, LOSS_mean, PRO_mean],
-        "Best ID": [ACC_bestID, LOSS_bestID, PRO_bestID],
-        "Best": [ACC_best, LOSS_best, PRO_best],
-        "Worst ID": [ACC_worstID, LOSS_worstID, PRO_worstID],
-        "Worst": [ACC_worst, LOSS_worst, PRO_worst],
+        "":       ["ACC",     "LOSS",     "TIME"],
+        "Average":[f"{ACC_mean:.3f}", f"{LOSS_mean:.3f}", f"{PRO_mean:.3f}"],
+        "Best ID":[ACC_bestID, LOSS_bestID, PRO_bestID],
+        "Best":   [f"{ACC_best:.3f}", f"{LOSS_best:.3f}", f"{PRO_best:.3f}"],
+        "Worst ID":[ACC_worstID, LOSS_worstID, PRO_worstID],
+        "Worst":  [f"{ACC_worst:.3f}", f"{LOSS_worst:.3f}", f"{PRO_worst:.3f}"],
     }
     df = pd.DataFrame(data)
     print(df)
@@ -275,7 +275,7 @@ def show_images(images,labels,dataset,fixed_indices):
     plt.suptitle(title)
 
 #------------------------------------------------------------------------------------------
-def final_graph_maker(file_pathes,leverages,memory_lis,labels):
+def final_graph_maker(file_pathes,leverages,memory_lis,labels,Save=False, Show=False):
 
     fmts =  ['-o', '-s', '-^', '-D']  # 各モデルのプロットスタイル
 
@@ -328,6 +328,17 @@ def final_graph_maker(file_pathes,leverages,memory_lis,labels):
     ax2.set_ylabel('Accuracy', fontsize=15)
     ax2.legend(fontsize=15, loc='upper left', bbox_to_anchor=(1.0, 1))
     ax2.grid(True)
-    plt.show()
+    if Show:
+        plt.show()
+    if Save:
+        tmp_loss = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
+        fig1.savefig(tmp_loss.name, bbox_inches='tight')
+        # Accuracy用画像を保存
+        tmp_acc = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
+        fig2.savefig(tmp_acc.name, bbox_inches='tight')
 
+        plt.close(fig1)
+        plt.close(fig2)
+
+        return tmp_loss.name, tmp_acc.name
 #-----------------------------------------------------------

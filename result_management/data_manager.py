@@ -10,7 +10,7 @@ from reportlab.lib.utils import ImageReader
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 from reportlab.lib import colors
 
-from train.evaluate import plot_loss_curve, plot_confusion_matrix, plot_errorbar_losscurve, create_table
+from train.evaluate import plot_loss_curve, plot_confusion_matrix, plot_errorbar_losscurve, create_table, final_graph_maker
 
 now = datetime.now()
 formatted_time = now.strftime("%m%d%H%M")
@@ -205,18 +205,24 @@ def create_result_pdf(variable_param, params):
         mid_file_name = f"{variable}{variable_param}_mid.csv"
         All_loss_test, All_test_acc, All_last_loss, All_pro_time = load_csv_data(folder_path, mid_file_name)
         
-        # Errorbar Loss
+        # --- 中間結果の描画 ---
+        
+        # ラベル
         c.setFont("Times-Roman", 12)
         c.drawString(left_x, current_y, "Average Loss Curve")
-        current_y -= (IMG_HEIGHT + 15)
-        error_loss_name = plot_errorbar_losscurve(All_loss_test, Save=True)
-        c.drawImage(ImageReader(error_loss_name), left_x, current_y, width=IMG_WIDTH, height=IMG_HEIGHT, preserveAspectRatio=True)
+        c.drawString(right_x, current_y, "Statistics Summary")
+        current_y -= 15 # ラベルとコンテンツの間のスペース
 
+        # Errorbar Loss
+        error_loss_name = plot_errorbar_losscurve(All_loss_test, Save=True)
+        
         # Table
-        df = create_table(All_test_acc, All_last_loss, All_pro_time)
+        df = create_table(All_test_acc, All_last_loss, All_pro_time,Save=True)
+        
+        table_h = 0
         if df is not None:
             table_data = [df.columns.tolist()] + df.values.tolist()
-            table = Table(table_data, colWidths=[50, 60, 50, 50, 50, 50])
+            table = Table(table_data, colWidths=[40, 48, 40, 40, 40, 40] )
             table.setStyle(TableStyle([
                 ('ALIGN', (0,0), (-1,-1), 'CENTER'),
                 ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
@@ -225,20 +231,59 @@ def create_result_pdf(variable_param, params):
                 ('FONTSIZE', (0,0), (-1,-1), 8),
                 ('GRID', (0,0), (-1,-1), 0.5, 'black'),
             ]))
-            
-            t_w, t_h = table.wrapOn(c, 0, 0)
-            
-            c.setFont("Times-Roman", 12)
-            c.drawString(right_x, current_y + IMG_HEIGHT - t_h -15, "Statistics Summary")
-            table.drawOn(c, right_x, current_y + IMG_HEIGHT - t_h - 30)
+            _ , table_h = table.wrapOn(c, 0, 0)
+        
+        # y座標の計算 (画像とテーブルの高さを考慮)
+        content_y = current_y - max(IMG_HEIGHT, table_h)
+
+        # Errorbar Loss Curve を描画
+        c.drawImage(ImageReader(error_loss_name), left_x, content_y, width=IMG_WIDTH, height=IMG_HEIGHT, preserveAspectRatio=True)
+
+        # Table を描画
+        if df is not None:
+            table.drawOn(c, right_x-25, content_y + max(IMG_HEIGHT, table_h) - table_h) # テーブルを垂直方向中央に配置
         else:
-            c.setFont("Times-Roman", 12)
-            c.drawString(right_x, current_y + IMG_HEIGHT - 30, "Statistics Summary")
-            c.drawString(right_x, current_y + IMG_HEIGHT - 45, "(No data to display)")
+            c.setFont("Times-Roman", 10)
+            c.drawString(right_x, content_y + IMG_HEIGHT/2, "(No data to display)")
+
+        current_y = content_y - V_GAP # y座標を更新
         
-        current_y -= (IMG_HEIGHT + V_GAP)
-        c.showPage() #可変パラメータごとに改ページ
-        current_y = height - TOP_MARGIN
-        
+        # c.showPage() #可変パラメータごとに改ページ
+        # current_y = height - TOP_MARGIN
+
+    # --- 最終結果グラフの追加 ---
+    c.showPage() # 新しいページを開始
+    current_y = height - TOP_MARGIN
+
+    c.setFont("Times-Roman", 20)
+    c.drawCentredString(center_x, current_y, "Final Result Graph")
+    current_y -= 40
+
+    if params['dataset'] in ('mnist', 'fashion-mnist'):
+        leverages = [1,2,4] #[1,2,4,8,16]
+        memory_lis =[1,2,4]
+    elif params['dataset'] in ('cifar-10', 'cinic-10'):
+        leverages = [1,2,3,4,6,8,12,16,24,48]
+        memory_lis =[1,2,10,20,30,40,50]
+    elif params['dataset'] == 'covtype':
+        leverages = [1,2,3,6,9,18,27,54]
+        memory_lis =[1,2,10,20,30,40,50,60]
+
+    file_path = os.path.join(folder_path, 'Final_results.csv')
+    final_loss_name, final_acc_name = final_graph_maker([file_path], leverages, memory_lis, 'Photonic Encoder', Save=True)
+
+    # ラベルを描画
+    c.setFont("Times-Roman", 12)
+    c.drawString(left_x, current_y, "Final Loss Graph")
+    c.drawString(right_x, current_y, "Final Accuracy Graph")
+    current_y -= (IMG_HEIGHT + 15)
+
+    # 画像を描画
+    if final_loss_name and os.path.exists(final_loss_name):
+        c.drawImage(ImageReader(final_loss_name), left_x, current_y, width=IMG_WIDTH, height=IMG_HEIGHT, preserveAspectRatio=True)
+    
+    if final_acc_name and os.path.exists(final_acc_name):
+        c.drawImage(ImageReader(final_acc_name), right_x, current_y, width=IMG_WIDTH, height=IMG_HEIGHT, preserveAspectRatio=True)
+
     c.save()
     print(f"PDFファイルを保存しました: {folder_path}/{file_name}")
