@@ -3,7 +3,7 @@ import platform
 import sys
 # sys.path.append(os.path.abspath(".."))
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from train.evaluate import graph_maker
+from train.evaluate import final_graph_maker
 
 home_directory = os.path.expanduser('~')
 system_type = platform.system()
@@ -18,8 +18,7 @@ if system_type == "Windows":
         onedrive_path = os.path.join(home_directory, "OneDrive")
 elif system_type == "Darwin": 
     onedrive_path = os.path.join(home_directory, "Library", "CloudStorage", "OneDrive-個人用(2)")
-
-print(f"OneDrive path: {onedrive_path}")
+# print(f"OneDrive path: {onedrive_path}")
 
 file_pathes = []
 labels = []
@@ -50,6 +49,7 @@ file_pathes.append(os.path.join(onedrive_path,'PhotonicEncoder_data',dataset, va
 
 #-------------------------3rdParameter--------------------------
 
+#---------------------------------------------------------------
 
 if dataset in ('mnist', 'fashion-mnist'):
     leverages = [1,2,4,8,16]
@@ -64,4 +64,4 @@ elif dataset == 'covtype':
 # leverages = [1,2,4,8,16]
 # memory_lis =[1,2,4,8,16]
 
-graph_maker(file_pathes, leverages, memory_lis, labels)
+final_graph_maker(file_pathes, leverages, memory_lis, labels)

@@ -15,7 +15,8 @@ print(f'Using device: {device}')
 from dataloader.dataloader import load_MNIST_data,load_CINIC10_data,load_CIFAR10_data,load_Fmnist_data
 from train.training import train_nomal,train_for_DEQ
 from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusion_matrix,plot_histograms,create_table,convergence_verify
-from result_management.data_manager import save_csv,auto_git_push
+from result_management.data_manager import save_csv,auto_git_push,save_experiment_report
+print("-------import finished-------")
 
 variable_param = "leverage" #ここで設定した項目は配列にすること(none,leverage,alpha)
 
@@ -48,6 +49,7 @@ params = {
 #save---------------------------------------------
 folder_params = {k: params[k] for k in ['dataset', 'enc_type', 'cls_type']}
 
+save_experiment_report(variable_param, params)
 
 data_loaders = {
     'cifar-10': load_CIFAR10_data,

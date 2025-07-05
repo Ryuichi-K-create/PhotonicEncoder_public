@@ -98,3 +98,36 @@ def load_csv_data(folder_path,file_name):
         print(f"Error loading data from {folder_path}: {e}")
         return tuple(None for _ in range(len(rows))) if 'rows' in locals() else ()
 
+#--------------------------------------------------------------------------------
+
+def save_experiment_report(variable_param, params):
+    """
+    NN実験のパラメータを日本語でわかりやすくまとめ、指定フォルダにreport.txtとして保存する関数
+    Args:
+        variable_param (str): 可変パラメータ名
+        params (dict): 実験パラメータ辞書
+        folder_params (dict): 保存先フォルダ情報（dataset, enc_type, cls_type）
+    """
+    # 保存先ディレクトリの構築
+    save_directory = os.path.join(onedrive_path,'PhotonicEncoder_data',params['dataset'],
+                                  f'{variable_param}_variable', params['enc_type'], params['cls_type'], str(formatted_time))
+    os.makedirs(save_directory, exist_ok=True)
+    report_path = os.path.join(save_directory, 'experiment_report.txt')
+
+    # 日本語でパラメータをまとめる
+    lines = []
+    lines.append('【ニューラルネットワーク実験パラメータ報告書】\n')
+    lines.append(f'作成日時: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\n')
+    lines.append(f'可変パラメータ: {variable_param}\n')
+    lines.append('--- 実験パラメータ一覧 ---')
+    for k, v in params.items():
+        lines.append(f'{k}: {v}')
+    lines.append(f'保存ディレクトリ: {save_directory}')
+
+    # ファイルに保存
+    with open(report_path, 'w', encoding='utf-8') as f:
+        f.write('\n'.join(lines))
+    print(f"実験パラメータ報告書を保存しました: {report_path}")
+
+# 例: 実行
+# save_experiment_report(variable_param, params, folder_params)

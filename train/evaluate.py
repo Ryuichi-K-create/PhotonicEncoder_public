@@ -253,7 +253,7 @@ def show_images(images,labels,dataset,fixed_indices):
     plt.suptitle(title)
 
 #------------------------------------------------------------------------------------------
-def graph_maker(file_pathes,leverages,memory_lis,labels):
+def final_graph_maker(file_pathes,leverages,memory_lis,labels):
 
     fmts =  ['-o', '-s', '-^', '-D']  # 各モデルのプロットスタイル
 
