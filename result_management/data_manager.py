@@ -260,8 +260,8 @@ def create_result_pdf(variable_param, params):
     current_y -= 40
 
     if params['dataset'] in ('mnist', 'fashion-mnist'):
-        leverages = [1,2,4] #[1,2,4,8,16]
-        memory_lis =[1,2,4]
+        leverages = [1,2,4,8,16] #[1,2,4,8,16]
+        memory_lis =[1,2,4,8,16]
     elif params['dataset'] in ('cifar-10', 'cinic-10'):
         leverages = [1,2,3,4,6,8,12,16,24,48]
         memory_lis =[1,2,10,20,30,40,50]

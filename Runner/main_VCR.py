@@ -4,6 +4,7 @@ import os
 import numpy as np
 import pandas as pd
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from datetime import datetime
 
 if torch.cuda.is_available():
     device = torch.device('cuda')
@@ -15,8 +16,11 @@ print(f'Using device: {device}')
 from dataloader.dataloader import load_MNIST_data,load_CINIC10_data,load_CIFAR10_data,load_Fmnist_data
 from train.training import train_nomal,train_for_DEQ
 from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusion_matrix,plot_histograms,create_table,convergence_verify
-from result_management.data_manager import save_csv,auto_git_push,save_experiment_report
+from result_management.data_manager import save_csv,auto_git_push,save_experiment_report,create_result_pdf
 print("-------import finished-------")
+now = datetime.now()
+formatted_time = now.strftime("%m%d%H%M")
+formatted_time = int(formatted_time)
 
 variable_param = "leverage" #ここで設定した項目は配列にすること(none,leverage,alpha)
 
@@ -27,7 +31,7 @@ params = {
     'batch_size': 100, #64 MNIST, 100 CIFAR10, 100 CINIC10
 
     #Encoder_Model--------------------------------
-    'enc_type': 'IM', # 'none', 'MZM', 'LI'
+    'enc_type': 'PM', # 'none', 'MZM', 'LI'
     'cls_type': 'MLP', # 'MLP' or 'CNN'
 
     #class_model--------------------------------------
@@ -41,8 +45,8 @@ params = {
     'lr': 0.001,
 
     #param--------------------------------------------
-    'num_try': 2,
-    'max_epochs': 3,
+    'num_try': 5,
+    'max_epochs': 10,
     'leverage': [1,2,4,8,16], #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
     'kernel_size': 4
 }
@@ -107,3 +111,6 @@ for variable in params[variable_param]: #variable:leverage,alpha
 if variable_param != 'none':
     datas = [All_last_ACCs_,All_last_LOSSs_,All_TIMEs_]
     save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='final') #最終保存
+
+params.update({'formatted_time': formatted_time})
+create_result_pdf(variable_param, params)
