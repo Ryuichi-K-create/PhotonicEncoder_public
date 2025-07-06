@@ -275,7 +275,7 @@ def show_images(images,labels,dataset,fixed_indices):
     plt.suptitle(title)
 
 #------------------------------------------------------------------------------------------
-def final_graph_maker(file_pathes,leverages,memory_lis,labels,Save=False, Show=False):
+def final_graph_maker(file_pathes,variable_param,variable_values,memory_lis,labels,Save=False, Show=False):
 
     fmts =  ['-o', '-s', '-^', '-D']  # 各モデルのプロットスタイル
 
@@ -304,25 +304,29 @@ def final_graph_maker(file_pathes,leverages,memory_lis,labels,Save=False, Show=F
         ACC_stds = np.std(All_last_ACCs_, axis=1)   # 各 leverage に対する標準偏差
 
         ax1.errorbar(
-            x=leverages, y=LOSS_means, yerr=LOSS_stds,
+            x=variable_values, y=LOSS_means, yerr=LOSS_stds,
             fmt=fmts[i], color=colors[i], ecolor=colors[i], capsize=5, 
             label=labels[i]
         )
 
         ax2.errorbar(
-            x=leverages, y=ACC_means, yerr=ACC_stds,
+            x=variable_values, y=ACC_means, yerr=ACC_stds,
             fmt=fmts[i], color=colors[i], ecolor=colors[i], capsize=5,
             label=labels[i]
         )
         i += 1
-    
-    ax1.set_xlabel('Compression Ratio', fontsize=15)
+        
+    x_label = variable_param.capitalize()
+    if variable_param == 'leverage':
+        x_label = 'Compression Ratio'
+
+    ax1.set_xlabel(x_label, fontsize=15)
     ax1.set_xticks(memory_lis)
     ax1.set_xticklabels([f"1:{x}" for x in memory_lis])
     ax1.set_ylabel('LOSS', fontsize=15)
     ax1.grid(True)
 
-    ax2.set_xlabel('Compression Ratio ', fontsize=15)
+    ax2.set_xlabel(x_label, fontsize=15)
     ax2.set_xticks(memory_lis)
     ax2.set_xticklabels([f"1:{x}" for x in memory_lis])
     ax2.set_ylabel('Accuracy', fontsize=15)

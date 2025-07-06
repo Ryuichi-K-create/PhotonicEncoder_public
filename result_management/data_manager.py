@@ -72,7 +72,6 @@ def load_csv_data(folder_path,file_name):
             rows = list(reader)
             datas = []
             for row in rows:
-                print(f"Evaluating: {row}")
                 # 空要素除去
                 row = [x for x in row if x and x.strip()]
                 if not row:
@@ -83,26 +82,20 @@ def load_csv_data(folder_path,file_name):
                     converted = [float(x) for x in row]
                     # すべてint変換できるか
                     if all(float(x).is_integer() for x in row):
-                        print(f"Evaluating1: {row}")
                         converted = [int(float(x)) for x in row]
                     datas.append(converted if len(converted) > 1 else converted[0])
 
                 except Exception:
                     if all(isinstance(x, str) and x.startswith('[') and x.endswith(']') for x in row):
-                        print(f"Evaluating2: {row}")
                         try:
                             converted = [ast.literal_eval(x) for x in row]
                             datas.append(converted)
                         except Exception:
-                            print(f"Evaluating3: {row}")
                             datas.append(row[0])
                     else:
-                        print(f"Evaluating4: {row}")
                         datas.append(row if len(row) > 1 else row[0])
-                print(f"Final Evaluating: {row}")
             return tuple(datas)
     except Exception as e:
-        print(f"Error loading data from {folder_path}: {e}")
         return tuple(None for _ in range(len(rows))) if 'rows' in locals() else ()
 
 #--------------------------------------------------------------------------------
@@ -260,17 +253,14 @@ def create_result_pdf(variable_param, params):
     current_y -= 40
 
     if params['dataset'] in ('mnist', 'fashion-mnist'):
-        leverages = [1,2,4,8,16] #[1,2,4,8,16]
         memory_lis =[1,2,4,8,16]
     elif params['dataset'] in ('cifar-10', 'cinic-10'):
-        leverages = [1,2,3,4,6,8,12,16,24,48]
         memory_lis =[1,2,10,20,30,40,50]
     elif params['dataset'] == 'covtype':
-        leverages = [1,2,3,6,9,18,27,54]
         memory_lis =[1,2,10,20,30,40,50,60]
 
     file_path = os.path.join(folder_path, 'Final_results.csv')
-    final_loss_name, final_acc_name = final_graph_maker([file_path], leverages, memory_lis, 'Photonic Encoder', Save=True)
+    final_loss_name, final_acc_name = final_graph_maker([file_path], variable_param,params[variable_param], memory_lis, 'Photonic Encoder', Save=True)
 
     # ラベルを描画
     c.setFont("Times-Roman", 12)
