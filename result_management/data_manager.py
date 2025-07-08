@@ -46,6 +46,8 @@ def auto_git_push(branch_name,commit_msg="Auto commit"):
 def save_csv(datas,variable_param,variable,num_times,dataset,enc_type,cls_type,save_type): #結果はonedriveに保存
     save_directory = os.path.join(onedrive_path,'PhotonicEncoder_data',dataset,f'{variable_param}_variable',enc_type,cls_type,str(formatted_time))
     os.makedirs(save_directory, exist_ok=True)
+    if variable_param == 'alpha':
+        variable = f'{variable/np.pi:.3f}π'
 
     if save_type == 'trial':
         file_name = f'{variable}{variable_param}_{num_times+1}th_.csv'##
