@@ -34,8 +34,8 @@ params = {
 
     #Encoder_Model--------------------------------
     'enc_type': 'PM', # 'none', 'MZM', 'LI'
-    'alpha': [np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16], #位相変調機の感度(np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16),np.pi:-π~π
-
+    'alpha': [np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16], 
+    #位相変調機の感度[np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16],pi:-π~π
     #class_model--------------------------------------
     'cls_type': 'CNN', # 'MLP' or 'CNN'
     'num_layer': 2,

@@ -143,7 +143,7 @@ def plot_histograms(data_train,data_test, dataset, kernel_size, batch_size,enc_t
     plt.show()
 
 #------------------------------------------------------------------------------------------
-def create_table(All_test_acc,All_last_loss,All_pro_time,Save=False):
+def create_table(All_test_acc,All_last_loss,All_pro_time,Save=False,Show=False):
     ACC_mean = np.mean(All_test_acc)
     ACC_best = np.max(All_test_acc)
     ACC_bestID = np.argmax(All_test_acc) + 1
@@ -171,7 +171,8 @@ def create_table(All_test_acc,All_last_loss,All_pro_time,Save=False):
         "Worst":  [f"{ACC_worst:.3f}", f"{LOSS_worst:.3f}", f"{PRO_worst:.3f}"],
     }
     df = pd.DataFrame(data)
-    print(df)
+    if Show:
+        print(df)
     if Save:
         return df
 #------------------------------------------------------------------------------------------
@@ -325,16 +326,21 @@ def final_graph_maker(file_pathes,variable_param,variable_values,memory_lis,labe
     if variable_param == 'leverage':
         ax1.set_xticklabels([f"1:{x}" for x in memory_lis])
     elif variable_param == 'alpha':
-        ax1.set_xticklabels([f'{int(x/np.pi)}π' for x in memory_lis])
+        xticklabels = [r"$2\pi$", r"$\pi$", r"$\dfrac{\pi}{2}$", r"$\dfrac{\pi}{4}$", r"$\dfrac{\pi}{16}$"]
+        ax1.set_xticklabels(xticklabels)
+    else:
+        ax1.set_xticks(memory_lis)
     ax1.set_ylabel('LOSS', fontsize=15)
     ax1.grid(True)
+
 
     ax2.set_xlabel(x_label, fontsize=15)
     ax2.set_xticks(memory_lis)
     if variable_param == 'leverage':
         ax2.set_xticklabels([f"1:{x}" for x in memory_lis])
     elif variable_param == 'alpha':
-        ax2.set_xticklabels([f'{int(x/np.pi)}π' for x in memory_lis])
+        xticklabels = [r"$2\pi$", r"$\pi$", r"$\dfrac{\pi}{2}$", r"$\dfrac{\pi}{4}$", r"$\dfrac{\pi}{16}$"]
+        ax2.set_xticklabels(xticklabels)
     ax2.set_ylabel('Accuracy', fontsize=15)
     ax2.legend(fontsize=15, loc='upper left', bbox_to_anchor=(1.0, 1))
     ax2.grid(True)

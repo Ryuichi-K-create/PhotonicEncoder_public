@@ -8,6 +8,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+import numpy as np
 from reportlab.lib import colors
 
 from train.evaluate import plot_loss_curve, plot_confusion_matrix, plot_errorbar_losscurve, create_table, final_graph_maker
@@ -240,9 +241,7 @@ def create_result_pdf(variable_param, params):
             c.drawString(right_x, content_y + IMG_HEIGHT/2, "(No data to display)")
 
         current_y = content_y - V_GAP # y座標を更新
-        
-        # c.showPage() #可変パラメータごとに改ページ
-        # current_y = height - TOP_MARGIN
+
 
     # --- 最終結果グラフの追加 ---
     c.showPage() # 新しいページを開始
@@ -260,8 +259,10 @@ def create_result_pdf(variable_param, params):
         memory_lis =[1,2,10,20,30,40,50]
     elif params['dataset'] == 'covtype' and variable_param == 'leverage':
         memory_lis =[1,2,10,20,30,40,50,60]
+    #----alphaのリストを設定----
+    elif variable_param == 'alpha':
+        memory_lis = [np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/16]
 
-    
     file_path = os.path.join(folder_path, 'Final_results.csv')
     final_loss_name, final_acc_name = final_graph_maker([file_path], variable_param,params[variable_param], memory_lis, 'Photonic Encoder', Save=True)
 

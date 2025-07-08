@@ -1,18 +1,19 @@
 import sys
 import os
+import numpy as np
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from result_management.data_manager import create_result_pdf
 # from train.evaluate import plot_loss_curve, plot_errorbar_losscurve, plot_confusion_matrix, plot_histograms, create_table, convergence_verify, final_graph_maker
 print("-------import finished-------")
 #--------------------------------------------------------
-variable_param = "leverage"
+variable_param = "alpha"
 params={
     'dataset': 'fashion-mnist',
-    'variable_param': 'leverage',
     'enc_type': 'PM',
     'cls_type': 'MLP',
-    'formatted_time': '7060615',  # 例: 'mmddyyyy'
-    'leverage': [1, 2, 4, 8, 16],  # 例: [1, 2, 4, 8, 16]
+    'formatted_time': '7081923',  # 例: 'mmddyyyy'
+    variable_param: [np.pi*2,np.pi,np.pi/2,np.pi/4,np.pi/8,np.pi/16],  
+    # 例: [1, 2, 4, 8, 16],[np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16]
     'num_try': 5,  # 試行回数
 }
 
