@@ -23,7 +23,7 @@ formatted_time = now.strftime("%m%d%H%M")
 formatted_time = int(formatted_time)
 
 #-----------------------------------------------------------------
-variable_param = "leverage" #ここで設定した項目は配列にすること(none,leverage,alpha)
+variable_param = "alpha" #ここで設定した項目は配列にすること(none,leverage,alpha)
 save = True
 
 params = {
@@ -33,10 +33,11 @@ params = {
     'batch_size': 100, #64 MNIST, 100 CIFAR10, 100 CINIC10
 
     #Encoder_Model--------------------------------
-    'enc_type': 'IM', # 'none', 'MZM', 'LI'
-    'cls_type': 'MLP', # 'MLP' or 'CNN'
+    'enc_type': 'PM', # 'none', 'MZM', 'LI'
+    'alpha': [np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16], #位相変調機の感度(np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16),np.pi:-π~π
 
     #class_model--------------------------------------
+    'cls_type': 'MLP', # 'MLP' or 'CNN'
     'num_layer': 2,
     'fc': 'relu',
     'dropout': 0.0,
@@ -47,9 +48,9 @@ params = {
     'lr': 0.001,
 
     #param--------------------------------------------
-    'num_try': 1,
-    'max_epochs': 3,
-    'leverage': [4,8,16], #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
+    'num_try': 5,
+    'max_epochs': 10,
+    'leverage': 8, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
     'kernel_size': 4
 }
 #save---------------------------------------------

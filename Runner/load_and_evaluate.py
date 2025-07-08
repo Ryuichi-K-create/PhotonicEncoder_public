@@ -7,13 +7,13 @@ print("-------import finished-------")
 #--------------------------------------------------------
 variable_param = "leverage"
 params={
-    'dataset': 'mnist',
+    'dataset': 'fashion-mnist',
     'variable_param': 'leverage',
-    'enc_type': 'IM',
+    'enc_type': 'PM',
     'cls_type': 'MLP',
-    'formatted_time': '7052014',  # 例: 'mmddyyyy'
-    'leverage': [1, 2, 4],  # 例: [1, 2, 4, 8, 16]
-    'num_try': 2,  # 試行回数
+    'formatted_time': '7060615',  # 例: 'mmddyyyy'
+    'leverage': [1, 2, 4, 8, 16],  # 例: [1, 2, 4, 8, 16]
+    'num_try': 5,  # 試行回数
 }
 
 create_result_pdf(variable_param, params)

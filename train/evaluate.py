@@ -252,8 +252,8 @@ def show_images(images,labels,dataset,fixed_indices):
 
     images = images.cpu().numpy()
     images = images.transpose(0, 2, 3, 1)  # (B, C, H, W) -> (B, H, W, C)
-    mean = np.array([0,0,0])
-    std = np.array([1,1,1])
+    mean = np.array([0.5,0.5,0.5])
+    std = np.array([0.5,0.5,0.5])
     images =  images * std + mean  # 標準化を元に戻す
     images = np.clip(images, 0, 1)  # 0-1の範囲にクリップ
 

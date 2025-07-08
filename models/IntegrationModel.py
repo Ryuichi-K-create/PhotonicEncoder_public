@@ -13,7 +13,7 @@ def split_into_kernels(image, kernel_size):
     return patches      #(b, n_patches, c, kernel_size, kernel_size)
 #--------------------------------------------------------------------
 class PMEncoder(nn.Module):
-    def __init__(self,input_dim,output_dim,device='cpu'):
+    def __init__(self,input_dim,output_dim,alpha,device='cpu'):
         super(PMEncoder,self).__init__()
         phase = torch.rand(output_dim, input_dim) * 2 * np.pi - np.pi
         modulus = torch.ones(output_dim, input_dim)/np.sqrt(input_dim)
@@ -25,7 +25,7 @@ class PMEncoder(nn.Module):
         self.B.requires_grad = False
         # self.alpha = (torch.rand(input_dim) - 0.5) * np.pi #-pi/2 ~ pi/2
         # self.alpha = (torch.rand(input_dim)-1) * 2 * np.pi #-π ~ π
-        self.alpha = (torch.rand(input_dim) - 0.5) * (np.pi / 2) # -π/4 ~ π/4
+        self.alpha = (torch.rand(input_dim) - 0.5) * (2*alpha) # -π/4 ~ π/4
         # self.alpha = torch.rand(input_dim) * 2 * np.pi #0~ 2pi
         # self.alpha = torch.rand(input_dim) * 0.5 + 0.5
         self.alpha = self.alpha.detach().to(device) 
@@ -39,7 +39,7 @@ class PMEncoder(nn.Module):
         return x
     
 class IMEncoder(nn.Module):
-    def __init__(self,input_dim,output_dim,device='cpu'):
+    def __init__(self,input_dim,output_dim,alpha,device='cpu'):
         super(IMEncoder,self).__init__()
         self.B = nn.Parameter(torch.randn(output_dim, 
                                           input_dim) * (1/np.sqrt(input_dim))).detach().to(device)
@@ -52,7 +52,7 @@ class IMEncoder(nn.Module):
         return x
 
 class MZMEncoder(nn.Module):
-    def __init__(self,input_dim,output_dim,device='cpu'):
+    def __init__(self,input_dim,output_dim,alpha,device='cpu'):
         super(MZMEncoder,self).__init__()
         phase = torch.rand(output_dim, input_dim) * 2 * np.pi - np.pi
         modulus = torch.ones(output_dim, input_dim)
@@ -62,9 +62,7 @@ class MZMEncoder(nn.Module):
 
         self.B = torch.complex(real_part, imag_part).detach().to(device) 
         self.B.requires_grad = False
-        self.alpha = torch.rand(input_dim) * 0.5 + 0.5
-        #self.alpha = torch.rand(input_dim) * 2 * np.pi
-        self.alpha = self.alpha.detach().to(device)
+        self.alpha = (torch.rand(input_dim) - 0.5) * (2*alpha) 
         self.alpha.requires_grad = False
 
     def forward(self, x):
@@ -75,7 +73,7 @@ class MZMEncoder(nn.Module):
         return x
 
 class LIEncoder(nn.Module):
-    def __init__(self,input_dim,output_dim,device='cpu'):
+    def __init__(self,input_dim,output_dim,alpha,device='cpu'):
         super(LIEncoder,self).__init__()
         self.B = nn.Parameter(torch.randn(output_dim, 
                                           input_dim) * (input_dim)).detach().to(device)
@@ -91,7 +89,7 @@ from .Classifiers import MLP_for_10, CNN_for10, MLP_for_7
 
 class Image10Classifier(nn.Module):#10クラスの画像用
     def __init__(self, dataset,kernel_size,leverage,
-                 enc_type,cls_type,num_layer,fc,dropout,device):
+                 enc_type,alpha,cls_type,num_layer,fc,dropout,device):
         super(Image10Classifier, self).__init__()
         dataset_config = {
             'mnist':     {'img_size': 28, 'channels': 1},
@@ -124,7 +122,7 @@ class Image10Classifier(nn.Module):#10クラスの画像用
         potential_dim = self.num_patches * feat_dim
         self.split = split_into_kernels 
         self.enc_type = enc_type
-        self.encoder = encoders[enc_type](kernel_in,feat_dim,device) 
+        self.encoder = encoders[enc_type](kernel_in,feat_dim,alpha,device) 
         self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc,self.num_patches,dropout).to(device)
 
     def forward(self, x):
@@ -141,7 +139,7 @@ class Image10Classifier(nn.Module):#10クラスの画像用
 
 class Table10Classifier(nn.Module):#10クラスの表データ用
     def __init__(self, dataset,kernel_size,leverage,
-                 enc_type,cls_type,num_layer,fc,dropout,device):
+                 enc_type,alpha,cls_type,num_layer,fc,dropout,device):
         super(Table10Classifier, self).__init__()
         dataset_config = {
             'covtype' : {'input_dim': 54}
@@ -159,7 +157,7 @@ class Table10Classifier(nn.Module):#10クラスの表データ用
         }
         self.input_dim = dataset_config[dataset]['input_dim']
         potential_dim = int(self.input_dim//leverage)
-        self.encoder = encoders[enc_type](self.input_dim,potential_dim,device)
+        self.encoder = encoders[enc_type](self.input_dim,potential_dim,alpha,device)
         self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc,n_patches=None,dropout=dropout).to(device)
 
     def forward(self, x):

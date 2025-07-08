@@ -14,7 +14,7 @@ from models.IntegrationModel import Image10Classifier,DEQ_Image10Classifier,Tabl
 
 def train_nomal(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
                          data_test,batch_size,device,max_epochs,leverage,
-                         enc_type,cls_type,num_layer,fc,dropout,kernel_size
+                         enc_type,alpha,cls_type,num_layer,fc,dropout,kernel_size
                          ):
     #---------------------------------------------
     models = {
@@ -46,7 +46,7 @@ def train_nomal(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
     train_dataloader,test_dataloader = get_new_dataloader(data_train,
                                                             data_test,batch_size)
     model = models[dataset](dataset,kernel_size,leverage,
-                            enc_type,cls_type,num_layer,fc,dropout,device)
+                            enc_type,alpha,cls_type,num_layer,fc,dropout,device)
     
     if dataset == 'covtype':
         counts = [211840, 283301, 35754, 2747, 9493, 17367, 20510] #covtypeのy_originの各ラベル数。
@@ -107,7 +107,7 @@ def train_nomal(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
 
 def train_for_DEQ(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
                          data_test,batch_size,device,max_epochs,leverage,
-                         enc_type,cls_type,num_layer,fc,dropout,kernel_size,num_iter,
+                         enc_type,alpha,cls_type,num_layer,fc,dropout,kernel_size,num_iter,
                          m,tol,beta):
     #---------------------------------------------
     models = {
@@ -137,7 +137,7 @@ def train_for_DEQ(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
     train_dataloader,test_dataloader = get_new_dataloader(data_train,
                                                             data_test,batch_size)
     model = models[dataset](dataset,kernel_size,leverage,
-                            enc_type,cls_type,num_layer,fc,dropout,num_iter,m,tol,beta,device)
+                            enc_type,alpha,cls_type,num_layer,fc,dropout,num_iter,m,tol,beta,device)
     criterion = loss_funcs[loss_func]
     optimizer = optimizers[optimizer](model.parameters(), lr)
 
