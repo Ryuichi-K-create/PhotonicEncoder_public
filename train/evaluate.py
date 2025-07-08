@@ -322,13 +322,19 @@ def final_graph_maker(file_pathes,variable_param,variable_values,memory_lis,labe
 
     ax1.set_xlabel(x_label, fontsize=15)
     ax1.set_xticks(memory_lis)
-    ax1.set_xticklabels([f"1:{x}" for x in memory_lis])
+    if variable_param == 'leverage':
+        ax1.set_xticklabels([f"1:{x}" for x in memory_lis])
+    elif variable_param == 'alpha':
+        ax1.set_xticklabels([f'{int(x/np.pi)}π' for x in memory_lis])
     ax1.set_ylabel('LOSS', fontsize=15)
     ax1.grid(True)
 
     ax2.set_xlabel(x_label, fontsize=15)
     ax2.set_xticks(memory_lis)
-    ax2.set_xticklabels([f"1:{x}" for x in memory_lis])
+    if variable_param == 'leverage':
+        ax2.set_xticklabels([f"1:{x}" for x in memory_lis])
+    elif variable_param == 'alpha':
+        ax2.set_xticklabels([f'{int(x/np.pi)}π' for x in memory_lis])
     ax2.set_ylabel('Accuracy', fontsize=15)
     ax2.legend(fontsize=15, loc='upper left', bbox_to_anchor=(1.0, 1))
     ax2.grid(True)

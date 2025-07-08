@@ -29,7 +29,7 @@ save = True
 params = {
     'none':[0], #variable_param=noneの際は1回だけ繰り返す
     #data---------------------------------------------
-    'dataset': 'fashion-mnist', # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
+    'dataset': 'cinic-10', # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
     'batch_size': 100, #64 MNIST, 100 CIFAR10, 100 CINIC10
 
     #Encoder_Model--------------------------------
@@ -37,7 +37,7 @@ params = {
     'alpha': [np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16], #位相変調機の感度(np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16),np.pi:-π~π
 
     #class_model--------------------------------------
-    'cls_type': 'MLP', # 'MLP' or 'CNN'
+    'cls_type': 'CNN', # 'MLP' or 'CNN'
     'num_layer': 2,
     'fc': 'relu',
     'dropout': 0.0,
@@ -49,7 +49,7 @@ params = {
 
     #param--------------------------------------------
     'num_try': 5,
-    'max_epochs': 10,
+    'max_epochs': 20,
     'leverage': 8, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
     'kernel_size': 4
 }

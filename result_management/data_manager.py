@@ -252,13 +252,16 @@ def create_result_pdf(variable_param, params):
     c.drawCentredString(center_x, current_y, "Final Result Graph")
     current_y -= 40
 
-    if params['dataset'] in ('mnist', 'fashion-mnist'):
+    memory_lis = params[variable_param]
+    #----leverageのリストを設定----
+    if params['dataset'] in ('mnist', 'fashion-mnist') and variable_param == 'leverage':
         memory_lis =[1,2,4,8,16]
-    elif params['dataset'] in ('cifar-10', 'cinic-10'):
+    elif params['dataset'] in ('cifar-10', 'cinic-10') and variable_param == 'leverage':
         memory_lis =[1,2,10,20,30,40,50]
-    elif params['dataset'] == 'covtype':
+    elif params['dataset'] == 'covtype' and variable_param == 'leverage':
         memory_lis =[1,2,10,20,30,40,50,60]
 
+    
     file_path = os.path.join(folder_path, 'Final_results.csv')
     final_loss_name, final_acc_name = final_graph_maker([file_path], variable_param,params[variable_param], memory_lis, 'Photonic Encoder', Save=True)
 
