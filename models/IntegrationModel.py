@@ -171,7 +171,7 @@ from .OtherModels import Cell,DEQFixedPoint,anderson
 #--------------------------------------------------------------------
 class DEQ_Image10Classifier(nn.Module):#10クラスの画像用(DEQ)
     def __init__(self, dataset,kernel_size,leverage,
-                 enc_type,cls_type,num_layer,fc,dropout,num_iter,m,tol,beta,device):
+                 enc_type,alpha,cls_type,num_layer,fc,dropout,num_iter,m,tol,beta,lam,device):
         super(DEQ_Image10Classifier, self).__init__() #DEQ_Image10Classifier, self
         self.device = device
         dataset_config = {
@@ -198,13 +198,16 @@ class DEQ_Image10Classifier(nn.Module):#10クラスの画像用(DEQ)
         potential_dim = self.z_dim
         self.num_iter = num_iter
         #--------------------------------------------
-        cell = Cell(kernel_in_total, self.z_dim,enc_type,device).to(device)
+        cell = Cell(kernel_in_total, self.z_dim,enc_type,alpha,device).to(device)
         self.deq_main = DEQFixedPoint(cell,anderson,self.z_dim,
                                       m = m,
                                       num_iter = num_iter,
                                       tol = tol,
                                       beta = beta,
+                                      lam = lam
                                       )
+        # print(f"DEQ_Image10Classifier: z_dim={self.z_dim}, num_patches={self.num_patches}, potential_dim={potential_dim}")
+
         self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc,self.num_patches,dropout).to(device)
         
     def forward(self, x):
@@ -215,7 +218,8 @@ class DEQ_Image10Classifier(nn.Module):#10クラスの画像用(DEQ)
         #               self.channels * self.kernel_size**2)(anderson軽量化)
 
         x = x.reshape(b,-1)
+
         x = self.deq_main(x)
-        x = x.reshape(b, -1)
+        x = x.reshape(b * self.num_patches,-1)
         x = self.classifier(x,b)
         return x

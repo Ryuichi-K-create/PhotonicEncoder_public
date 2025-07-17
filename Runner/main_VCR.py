@@ -22,8 +22,8 @@ formatted_time = now.strftime("%m%d%H%M")
 formatted_time = int(formatted_time)
 print(f'-----Formatted time: {formatted_time} -----')
 #-----------------------------------------------------------------
-variable_param = "alpha" #ここで設定した項目は配列にすること(none,leverage,alpha)
-save = True
+variable_param = "none" #ここで設定した項目は配列にすること(none,leverage,alpha)
+save = False
 
 params = {
     'none':[0], #variable_param=noneの際は1回だけ繰り返す
@@ -33,7 +33,7 @@ params = {
 
     #Encoder_Model--------------------------------
     'enc_type': 'PM', # 'none', 'MZM', 'LI'
-    'alpha': [np.pi/16,np.pi/32,np.pi/64,np.pi/128], 
+    'alpha': np.pi/4, 
     #位相変調機の感度[np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16],pi:-π~π
     #class_model--------------------------------------
     'cls_type': 'MLP', # 'MLP' or 'CNN'
@@ -48,7 +48,7 @@ params = {
 
     #param--------------------------------------------
     'num_try': 5,
-    'max_epochs': 20,
+    'max_epochs': 10,
     'leverage': 8, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
     'kernel_size': 4
 }

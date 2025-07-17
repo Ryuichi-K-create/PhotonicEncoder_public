@@ -107,8 +107,7 @@ def train_nomal(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
 
 def train_for_DEQ(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
                          data_test,batch_size,device,max_epochs,leverage,
-                         enc_type,alpha,cls_type,num_layer,fc,dropout,kernel_size,num_iter,
-                         m,tol,beta):
+                         enc_type,alpha,cls_type,num_layer,fc,dropout,kernel_size,num_iter,m,tol,beta,lam):
     #---------------------------------------------
     models = {
         'mnist':DEQ_Image10Classifier,
@@ -137,7 +136,7 @@ def train_for_DEQ(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
     train_dataloader,test_dataloader = get_new_dataloader(data_train,
                                                             data_test,batch_size)
     model = models[dataset](dataset,kernel_size,leverage,
-                            enc_type,alpha,cls_type,num_layer,fc,dropout,num_iter,m,tol,beta,device)
+                            enc_type,alpha,cls_type,num_layer,fc,dropout,num_iter,m,tol,beta,lam,device)
     criterion = loss_funcs[loss_func]
     optimizer = optimizers[optimizer](model.parameters(), lr)
 

@@ -70,6 +70,7 @@ def save_csv(datas,variable_param,variable,num_times,dataset,enc_type,cls_type,s
 def load_csv_data(folder_path,file_name):
     try:
         full_path = os.path.join(onedrive_path, 'PhotonicEncoder_data', folder_path, file_name)
+        print(f"Loading CSV file: {full_path}")
         with open(full_path, 'r', newline='') as file:
             reader = csv.reader(file)
             rows = list(reader)
@@ -248,43 +249,43 @@ def create_result_pdf(variable_param, params):
 
         current_y = content_y - V_GAP # y座標を更新
 
+    if variable_param != 'none':
+        # --- 最終結果グラフの追加 ---
+        c.showPage() # 新しいページを開始
+        current_y = height - TOP_MARGIN
 
-    # --- 最終結果グラフの追加 ---
-    c.showPage() # 新しいページを開始
-    current_y = height - TOP_MARGIN
+        c.setFont("Times-Roman", 20)
+        c.drawCentredString(center_x, current_y, "Final Result Graph")
+        current_y -= 40
 
-    c.setFont("Times-Roman", 20)
-    c.drawCentredString(center_x, current_y, "Final Result Graph")
-    current_y -= 40
+        memory_lis = params[variable_param]
+        #----leverageのリストを設定----
+        if params['dataset'] in ('mnist', 'fashion-mnist') and variable_param == 'leverage':
+            memory_lis =[1,2,4,8,16]
+        elif params['dataset'] in ('cifar-10', 'cinic-10') and variable_param == 'leverage':
+            memory_lis =[1,2,10,20,30,40,50]
+        elif params['dataset'] == 'covtype' and variable_param == 'leverage':
+            memory_lis =[1,2,10,20,30,40,50,60]
+        #----alphaのリストを設定----
+        elif variable_param == 'alpha':
+            memory_lis = [np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/16]
+            # memory_lis = [np.pi/16,np.pi/32,np.pi/64,np.pi/128]
 
-    memory_lis = params[variable_param]
-    #----leverageのリストを設定----
-    if params['dataset'] in ('mnist', 'fashion-mnist') and variable_param == 'leverage':
-        memory_lis =[1,2,4,8,16]
-    elif params['dataset'] in ('cifar-10', 'cinic-10') and variable_param == 'leverage':
-        memory_lis =[1,2,10,20,30,40,50]
-    elif params['dataset'] == 'covtype' and variable_param == 'leverage':
-        memory_lis =[1,2,10,20,30,40,50,60]
-    #----alphaのリストを設定----
-    elif variable_param == 'alpha':
-        memory_lis = [np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/16]
-        # memory_lis = [np.pi/16,np.pi/32,np.pi/64,np.pi/128]
+        file_path = os.path.join(folder_path, 'Final_results.csv')
+        final_loss_name, final_acc_name = final_graph_maker([file_path], variable_param,params[variable_param], memory_lis, 'Photonic Encoder', Save=True)
 
-    file_path = os.path.join(folder_path, 'Final_results.csv')
-    final_loss_name, final_acc_name = final_graph_maker([file_path], variable_param,params[variable_param], memory_lis, 'Photonic Encoder', Save=True)
+        # ラベルを描画
+        c.setFont("Times-Roman", 12)
+        c.drawString(left_x, current_y, "Final Loss Graph")
+        c.drawString(right_x, current_y, "Final Accuracy Graph")
+        current_y -= (IMG_HEIGHT + 15)
 
-    # ラベルを描画
-    c.setFont("Times-Roman", 12)
-    c.drawString(left_x, current_y, "Final Loss Graph")
-    c.drawString(right_x, current_y, "Final Accuracy Graph")
-    current_y -= (IMG_HEIGHT + 15)
-
-    # 画像を描画
-    if final_loss_name and os.path.exists(final_loss_name):
-        c.drawImage(ImageReader(final_loss_name), left_x, current_y, width=IMG_WIDTH, height=IMG_HEIGHT, preserveAspectRatio=True)
-    
-    if final_acc_name and os.path.exists(final_acc_name):
-        c.drawImage(ImageReader(final_acc_name), right_x, current_y, width=IMG_WIDTH, height=IMG_HEIGHT, preserveAspectRatio=True)
+        # 画像を描画
+        if final_loss_name and os.path.exists(final_loss_name):
+            c.drawImage(ImageReader(final_loss_name), left_x, current_y, width=IMG_WIDTH, height=IMG_HEIGHT, preserveAspectRatio=True)
+        
+        if final_acc_name and os.path.exists(final_acc_name):
+            c.drawImage(ImageReader(final_acc_name), right_x, current_y, width=IMG_WIDTH, height=IMG_HEIGHT, preserveAspectRatio=True)
 
     c.save()
     print(f"PDFファイルを保存しました: {folder_path}/{file_name}")

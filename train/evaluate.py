@@ -205,7 +205,7 @@ def convergence_verify(params,data_train,data_test,device):
     for x_batch, _ in test_dataloader:
         idx = random.randint(0, batch_size-1)
         x_sample = x_batch[idx].to(device)
-        break 
+        break
     # --------------------------------------------
     relres = []   # 相対残差の推移
     with torch.no_grad():

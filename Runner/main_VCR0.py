@@ -48,7 +48,7 @@ params = {
 
     #param--------------------------------------------
     'num_try': 5,
-    'max_epochs': 20,
+    'max_epochs': 10,
     'leverage': 8, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
     'kernel_size': 4,
 
@@ -129,4 +129,6 @@ if variable_param != 'none'and save:
     save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='final') #最終保存
 
     params.update({'formatted_time': str(formatted_time)})
+
+if save:
     create_result_pdf(variable_param, params)
