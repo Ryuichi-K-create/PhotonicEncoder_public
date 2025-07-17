@@ -99,6 +99,7 @@ def load_csv_data(folder_path,file_name):
                         datas.append(row if len(row) > 1 else row[0])
             return tuple(datas)
     except Exception as e:
+        print(f"Error loading CSV file {file_name}: {e}")
         return tuple(None for _ in range(len(rows))) if 'rows' in locals() else ()
 
 #--------------------------------------------------------------------------------
@@ -163,6 +164,9 @@ def create_result_pdf(variable_param, params):
 
     # 可変パラメータごとのループ
     for variable in params[variable_param]:
+        if variable_param == 'alpha':
+            variable = f'{variable/np.pi:.3f}π'
+        
         # セクションタイトル
         if new_page_check(30):
              c.drawCentredString(center_x, current_y, "Experiment Result Report (Cont.)")
@@ -264,6 +268,7 @@ def create_result_pdf(variable_param, params):
     #----alphaのリストを設定----
     elif variable_param == 'alpha':
         memory_lis = [np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/16]
+        # memory_lis = [np.pi/16,np.pi/32,np.pi/64,np.pi/128]
 
     file_path = os.path.join(folder_path, 'Final_results.csv')
     final_loss_name, final_acc_name = final_graph_maker([file_path], variable_param,params[variable_param], memory_lis, 'Photonic Encoder', Save=True)

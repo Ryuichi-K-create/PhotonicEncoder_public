@@ -8,11 +8,11 @@ print("-------import finished-------")
 #--------------------------------------------------------
 variable_param = "alpha"
 params={
-    'dataset': 'fashion-mnist',
+    'dataset': 'cinic-10',  # 'mnist', 'cifar-10', 'cinic-10', 'fashion-mnist'
     'enc_type': 'PM',
-    'cls_type': 'MLP',
-    'formatted_time': '7081923',  # 例: 'mmddyyyy'
-    variable_param: [np.pi*2,np.pi,np.pi/2,np.pi/4,np.pi/8,np.pi/16],  
+    'cls_type': 'CNN',
+    'formatted_time': '7161457',  # 例: 'mmddyyyy'
+    variable_param: [np.pi/16,np.pi/32,np.pi/64,np.pi/128],  
     # 例: [1, 2, 4, 8, 16],[np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16]
     'num_try': 5,  # 試行回数
 }

@@ -327,6 +327,7 @@ def final_graph_maker(file_pathes,variable_param,variable_values,memory_lis,labe
         ax1.set_xticklabels([f"1:{x}" for x in memory_lis])
     elif variable_param == 'alpha':
         xticklabels = [r"$2\pi$", r"$\pi$", r"$\dfrac{\pi}{2}$", r"$\dfrac{\pi}{4}$", r"$\dfrac{\pi}{16}$"]
+        # xticklabels = [r"$\dfrac{\pi}{16}$",r"$\dfrac{\pi}{32}$", r"$\dfrac{\pi}{64}$", r"$\dfrac{\pi}{128}$"]#---------------
         ax1.set_xticklabels(xticklabels)
     else:
         ax1.set_xticks(memory_lis)
@@ -340,6 +341,7 @@ def final_graph_maker(file_pathes,variable_param,variable_values,memory_lis,labe
         ax2.set_xticklabels([f"1:{x}" for x in memory_lis])
     elif variable_param == 'alpha':
         xticklabels = [r"$2\pi$", r"$\pi$", r"$\dfrac{\pi}{2}$", r"$\dfrac{\pi}{4}$", r"$\dfrac{\pi}{16}$"]
+        # xticklabels = [r"$\dfrac{\pi}{16}$",r"$\dfrac{\pi}{32}$", r"$\dfrac{\pi}{64}$", r"$\dfrac{\pi}{128}$"]#---------------
         ax2.set_xticklabels(xticklabels)
     ax2.set_ylabel('Accuracy', fontsize=15)
     ax2.legend(fontsize=15, loc='upper left', bbox_to_anchor=(1.0, 1))
