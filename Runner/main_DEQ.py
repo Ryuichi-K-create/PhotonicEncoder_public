@@ -45,7 +45,7 @@ num_iter=25
 tol=1e-2  #早期終了条件
 beta=1.0
 
-convergence_verify(dataset,num_iter,m,tol,beta,data_train,data_test,kernel_size,enc_type,leverage,device)
+convergence_verify(params, data_train=data_train, data_test=data_test, device=device)
 
 All_last_loss = []
 All_loss_test = []

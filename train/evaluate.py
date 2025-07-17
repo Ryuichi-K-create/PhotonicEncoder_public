@@ -176,7 +176,17 @@ def create_table(All_test_acc,All_last_loss,All_pro_time,Save=False,Show=False):
     if Save:
         return df
 #------------------------------------------------------------------------------------------
-def convergence_verify(dataset,num_iter,m,tol,beta,data_train,data_test,kernel_size,enc_type,leverage,device):
+def convergence_verify(params,data_train,data_test,device):
+    dataset = params['dataset']
+    num_iter = params['num_iter']
+    m = params['m']
+    tol = params['tol']
+    beta = params['beta']
+    kernel_size = params['kernel_size']
+    enc_type = params['enc_type']
+    leverage = params['leverage']
+    alpha = params['alpha']
+
     dataset_config = {
         'mnist':     {'img_size': 28, 'channels': 1},
         'cifar-10':  {'img_size': 32, 'channels': 3},
@@ -188,7 +198,7 @@ def convergence_verify(dataset,num_iter,m,tol,beta,data_train,data_test,kernel_s
     kernel_in = int(channels*kernel_size**2)
     z_dim = int(kernel_in/leverage)
     num_patches = int(img_size/kernel_size)**2
-    cell = Cell(kernel_in, z_dim,enc_type,device).to(device)
+    cell = Cell(kernel_in, z_dim,enc_type,alpha,device).to(device)
     # 可視化用に 1 バッチだけ入力（ここでは乱数）
     batch_size = 64
     _,test_dataloader = get_new_dataloader(data_train,data_test,batch_size)
