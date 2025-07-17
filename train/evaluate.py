@@ -184,12 +184,13 @@ def convergence_verify(params,data_train,data_test,device):
     beta = params['beta']
     kernel_size = params['kernel_size']
     enc_type = params['enc_type']
-    leverage = params['leverage']
+    leverage = params['leverage'][0]
     alpha = params['alpha']
 
     dataset_config = {
         'mnist':     {'img_size': 28, 'channels': 1},
         'cifar-10':  {'img_size': 32, 'channels': 3},
+        'cinic-10': {'img_size':32, 'channels':3},
         'fashion-mnist': {'img_size': 28, 'channels': 1},
         'cifar-100': {'img_size': 32, 'channels': 3},
     }
