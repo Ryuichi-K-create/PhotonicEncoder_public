@@ -43,8 +43,8 @@ def auto_git_push(branch_name,commit_msg="Auto commit"):
         print("❌ Git操作でエラー:", e)
 
 #--------------------------------------------------------------------------------
-def save_csv(datas,variable_param,variable,num_times,dataset,enc_type,cls_type,save_type): #結果はonedriveに保存
-    save_directory = os.path.join(onedrive_path,'PhotonicEncoder_data',dataset,f'{variable_param}_variable',enc_type,cls_type,str(formatted_time))
+def save_csv(datas,variable_param,variable,num_times,dataset,enc_type,cls_type,save_type,experiment_name): #結果はonedriveに保存
+    save_directory = os.path.join(onedrive_path,'PhotonicEncoder_data',dataset,f'{variable_param}_variable',enc_type,cls_type,str(experiment_name))
     os.makedirs(save_directory, exist_ok=True)
     if variable_param == 'alpha':
         variable = f'{variable/np.pi:.3f}π'
@@ -105,10 +105,10 @@ def load_csv_data(folder_path,file_name):
 
 #--------------------------------------------------------------------------------
 
-def save_experiment_report(variable_param, params):
+def save_experiment_report(variable_param, params,experiment_name):
     # 保存先ディレクトリの構築
     save_directory = os.path.join(onedrive_path,'PhotonicEncoder_data',params['dataset'],
-                                  f'{variable_param}_variable', params['enc_type'], params['cls_type'], str(formatted_time))
+                                  f'{variable_param}_variable', params['enc_type'], params['cls_type'], str(experiment_name))
     os.makedirs(save_directory, exist_ok=True)
     report_path = os.path.join(save_directory, 'experiment_report.txt')
 
@@ -128,8 +128,8 @@ def save_experiment_report(variable_param, params):
     print(f"実験パラメータ報告書を保存しました: {report_path}")
 
 #--------------------------------------------------------------------------------
-def create_result_pdf(variable_param, params):
-    folder_path = os.path.join(onedrive_path, 'PhotonicEncoder_data', params['dataset'],f"{variable_param}_variable", params['enc_type'], params['cls_type'], params['formatted_time'])
+def create_result_pdf(variable_param, params,experiment_name):
+    folder_path = os.path.join(onedrive_path, 'PhotonicEncoder_data', params['dataset'],f"{variable_param}_variable", params['enc_type'], params['cls_type'], str(experiment_name))
     file_name = 'experiment_report.pdf'
     c = canvas.Canvas(f"{folder_path}/{file_name}", pagesize=A4)
     width, height = A4
