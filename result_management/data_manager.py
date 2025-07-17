@@ -105,7 +105,7 @@ def load_csv_data(folder_path,file_name):
 
 #--------------------------------------------------------------------------------
 
-def save_experiment_report(variable_param, params,experiment_name):
+def save_experiment_report(variable_param, params,experiment_name='Normal'):
     # 保存先ディレクトリの構築
     save_directory = os.path.join(onedrive_path,'PhotonicEncoder_data',params['dataset'],
                                   f'{variable_param}_variable', params['enc_type'], params['cls_type'], str(experiment_name))
@@ -128,7 +128,7 @@ def save_experiment_report(variable_param, params,experiment_name):
     print(f"実験パラメータ報告書を保存しました: {report_path}")
 
 #--------------------------------------------------------------------------------
-def create_result_pdf(variable_param, params,experiment_name):
+def create_result_pdf(variable_param, params,experiment_name='Normal'):
     folder_path = os.path.join(onedrive_path, 'PhotonicEncoder_data', params['dataset'],f"{variable_param}_variable", params['enc_type'], params['cls_type'], str(experiment_name))
     file_name = 'experiment_report.pdf'
     c = canvas.Canvas(f"{folder_path}/{file_name}", pagesize=A4)
