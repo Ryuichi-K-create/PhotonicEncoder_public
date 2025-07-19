@@ -28,40 +28,40 @@ dataset = 'fashion-mnist'
 variable_param = 'leverage'
 
 #-------------------------1stParameter--------------------------
-labels.append('(1)Phase Modulation')
+labels.append('(1)DEQ')
 enc_type = 'PM'
 cls_type = 'MLP'
-variable_value = 2  # 例: variableの値
-num_times = 1  # 試行回数
-formatted_time = '7060038'  #[PM,IM,MZ,LI]の順番で保存される
+variable_value = [4,8,16]  # 例: variableの値
+num_times = 5  # 試行回数
+experiment_name = 'DEQ7180001'
 
-file_pathes.append(os.path.join(onedrive_path,'PhotonicEncoder_data',dataset, variable_param + '_variable', enc_type, cls_type, formatted_time, 'Final_results.csv'))
+file_pathes.append(os.path.join(onedrive_path,'PhotonicEncoder_data',dataset, variable_param + '_variable', enc_type, cls_type, experiment_name, 'Final_results.csv'))
 
 #-------------------------2ndParameter--------------------------
-labels.append('(2)Intensity Modulation')
-enc_type = 'IM'
+labels.append('(2)Normal')
+enc_type = 'PM'
 cls_type = 'MLP'
-variable_value = 2  # 例: variableの値
-num_times = 1  # 試行回数
-formatted_time = '7060045'  #[PM,IM,MZ,LI]の順番で保存される
+variable_value = [4,8,16]  # 例: variableの値
+num_times = 5  # 試行回数
+experiment_name = 'Normal7181422'  #[PM,IM,MZ,LI]の順番で保存される
 
-file_pathes.append(os.path.join(onedrive_path,'PhotonicEncoder_data',dataset, variable_param + '_variable', enc_type, cls_type, formatted_time, 'Final_results.csv'))
+file_pathes.append(os.path.join(onedrive_path,'PhotonicEncoder_data',dataset, variable_param + '_variable', enc_type, cls_type, experiment_name, 'Final_results.csv'))
 
 #-------------------------3rdParameter--------------------------
 
 #---------------------------------------------------------------
+if variable_param == 'leverage':
+    if dataset in ('mnist', 'fashion-mnist') :
+        variable_values = [1,2,4,8,16]
+        memory_lis =[1,2,4,8,16]
+    elif dataset in ('cifar-10', 'cinic-10'):
+        variable_values = [1,2,3,4,6,8,12,16,24,48]
+        memory_lis =[1,2,10,20,30,40,50]
+    elif dataset == 'covtype':
+        variable_values = [1,2,3,6,9,18,27,54]
+        memory_lis =[1,2,10,20,30,40,50,60]
 
-if dataset in ('mnist', 'fashion-mnist'):
-    leverages = [1,2,4,8,16]
-    memory_lis =[1,2,4,8,16]
-elif dataset in ('cifar-10', 'cinic-10'):
-    leverages = [1,2,3,4,6,8,12,16,24,48]
-    memory_lis =[1,2,10,20,30,40,50]
-elif dataset == 'covtype':
-    leverages = [1,2,3,6,9,18,27,54]
-    memory_lis =[1,2,10,20,30,40,50,60]
-
-# leverages = [1,2,4,8,16]
+# variable_values = [1,2,4,8,16]
 # memory_lis =[1,2,4,8,16]
 
-final_graph_maker(file_pathes, leverages, memory_lis, labels)
+final_graph_maker(file_pathes,variable_param,variable_value,memory_lis,labels,Save=False, Show=True)

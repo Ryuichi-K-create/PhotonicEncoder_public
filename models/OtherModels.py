@@ -1,7 +1,23 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+from torch.nn.utils import spectral_norm
 
 from .IntegrationModel import PMEncoder, IMEncoder, MZMEncoder, LIEncoder 
+
+class SNLinearRelax(nn.Linear):
+    def __init__(
+        self, in_features, out_features, bias=True,
+        gamma=0.9, n_power_iterations=5):
+        super().__init__(in_features, out_features, bias)
+        # 最大特異値を ≈1 へ
+        spectral_norm(self, name='weight', n_power_iterations=n_power_iterations)
+        # γ を登録（勾配は流さないので buffer で十分）
+        self.register_buffer("gamma", torch.tensor(float(gamma)))
+
+    def forward(self, x):
+        # 本来の weight はすでに spectral_norm で正規化済み
+        return F.linear(x, self.gamma * self.weight, self.bias)
 
 class Cell(nn.Module):
     def __init__(self, x_dim, z_dim,enc_type,alpha,device):
@@ -13,9 +29,12 @@ class Cell(nn.Module):
             'LI':LIEncoder
         }
         self.enc1 = encoders[enc_type](x_dim+z_dim,z_dim,alpha,device)
-        self.fc1 = nn.Linear(z_dim,z_dim)
+        # self.fc1 = spectral_norm(nn.Linear(z_dim, z_dim))
+        # self.fc1 = nn.Linear(z_dim, z_dim)
+        self.fc1 = SNLinearRelax(z_dim, z_dim, gamma=0.5)
+
         self.bn = nn.BatchNorm1d(z_dim)
-        self.act = nn.ReLU()
+        self.act = nn.Tanh()
     def forward(self,z , x):
         zx = torch.cat([x,z],dim=1)
         z = self.enc1(zx)
@@ -25,7 +44,7 @@ class Cell(nn.Module):
         z = self.act(z)
         return z
 
-def anderson(fc, x0,z_dim, m, num_iter, tol, beta, lam=1e-4):
+def anderson(fc, x0, z_dim, m, num_iter, tol, beta, lam=1e-4):
     bsz,_ = x0.shape
     X = torch.zeros(bsz, m, z_dim, dtype=x0.dtype, device=x0.device)
     F = torch.zeros_like(X)

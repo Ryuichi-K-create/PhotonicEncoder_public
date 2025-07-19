@@ -176,7 +176,7 @@ def create_table(All_test_acc,All_last_loss,All_pro_time,Save=False,Show=False):
     if Save:
         return df
 #------------------------------------------------------------------------------------------
-def convergence_verify(params,data_train,data_test,device):
+def convergence_verify(params,data_train,data_test,device,Show=False):
     dataset = params['dataset']
     num_iter = params['num_iter']
     m = params['m']
@@ -184,7 +184,7 @@ def convergence_verify(params,data_train,data_test,device):
     beta = params['beta']
     kernel_size = params['kernel_size']
     enc_type = params['enc_type']
-    leverage = params['leverage'][0]
+    leverage = params['leverage']#[0]
     alpha = params['alpha']
 
     dataset_config = {
@@ -200,6 +200,12 @@ def convergence_verify(params,data_train,data_test,device):
     z_dim = int(kernel_in/leverage)
     num_patches = int(img_size/kernel_size)**2
     cell = Cell(kernel_in, z_dim,enc_type,alpha,device).to(device)
+    #----------------------------------------------
+    with torch.no_grad():
+        W = cell.fc1.weight            # (out_dim, in_dim)
+        sigma_max = torch.linalg.svdvals(W).max()  # 最大特異値
+        print(f"Spectrum norm ||W||_2 = {sigma_max.item():.4f}")
+    #----------------------------------------------
     # 可視化用に 1 バッチだけ入力（ここでは乱数）
     batch_size = 64
     _,test_dataloader = get_new_dataloader(data_train,data_test,batch_size)
@@ -229,14 +235,16 @@ def convergence_verify(params,data_train,data_test,device):
             beta=beta
         )
     # ---------------- プロット ----------------------------------
-    plt.figure(figsize=(6,4))
-    plt.semilogy(range(1, len(relres)+1), relres, marker="o")
-    plt.xlabel("iteration")
-    plt.ylabel("relative residual")
-    plt.title("convergence (relative residual)")
-    plt.grid(True, which="both")
-    plt.tight_layout()
-    plt.show()
+    if Show:
+        plt.figure(figsize=(6,4))
+        plt.semilogy(range(1, len(relres)+1), relres, marker="o")
+        plt.xlabel("iteration")
+        plt.ylabel("relative residual")
+        plt.title("convergence (relative residual)")
+        plt.grid(True, which="both")
+        plt.tight_layout()
+        plt.show()
+    return relres
 
 #------------------------------------------------------------------------------------------
 def show_images(images,labels,dataset,fixed_indices):
