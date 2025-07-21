@@ -109,6 +109,7 @@ for variable in params[variable_param]: #variable:leverage,alpha
     All_test_acc = []
 
     for num_times in range(params['num_try']):
+
         params_for_train = {k: v for k,v in params.items() if k not in ('none',variable_param)}#配列を除外
 
         if variable_param != 'none': #leverageやalpha可変のとき
@@ -147,8 +148,6 @@ for variable in params[variable_param]: #variable:leverage,alpha
 if variable_param != 'none'and save:
     datas = [All_last_ACCs_,All_last_LOSSs_,All_TIMEs_]
     save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='final',experiment_name=experiment_name) #最終保存
-
-    params.update({'formatted_time': str(formatted_time)})
 
 if save:
     create_result_pdf(variable_param, params, experiment_name=experiment_name)
