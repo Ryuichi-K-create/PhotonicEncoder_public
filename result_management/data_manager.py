@@ -53,6 +53,10 @@ def save_csv(datas,variable_param,variable,num_times,dataset,enc_type,cls_type,s
         file_name = f'{variable}{variable_param}_{num_times+1}th_.csv'##
     elif save_type=='mid':
         file_name = f'{variable}{variable_param}_mid.csv'
+
+    elif save_type =='relres':
+        file_name = f'{variable}{variable_param}_relres.csv'
+    
     elif save_type == 'final':
         file_name = f'Final_results.csv'
     

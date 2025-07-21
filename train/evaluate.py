@@ -198,8 +198,11 @@ def convergence_verify(params,data_train,data_test,device,Show=False):
     img_size = dataset_config[dataset]['img_size']
     channels = dataset_config[dataset]['channels']
     kernel_in = int(channels*kernel_size**2)
+
     # leverageがlistの場合は最初の要素を使用、intの場合はそのまま使用
     leverage_value = leverage[0] if isinstance(leverage, list) else leverage
+    gamma = gamma[0] if isinstance(gamma, list) else gamma
+
     z_dim = int(kernel_in/leverage_value)
     num_patches = int(img_size/kernel_size)**2
     cell = Cell(kernel_in, z_dim,enc_type,alpha,gamma,device).to(device)

@@ -3,6 +3,7 @@ import sys
 import os
 import numpy as np
 import pandas as pd
+import time
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from datetime import datetime
 
@@ -25,7 +26,7 @@ print(f'-----Formatted time: {formatted_time} -----')
 experiment_type = "DEQ"
 experiment_name = f"{experiment_type}{formatted_time}"
 
-variable_param = "leverage" #ここで設定した項目は配列にすること(none,leverage,alpha)
+variable_param = "gamma" #ここで設定した項目は配列にすること(none,leverage,alpha)
 save = False
 
 params = {
@@ -61,7 +62,7 @@ params = {
     'num_iter': 25,
     'tol': 1e-4,  #早期終了条件
     'beta': 1.0,
-    'gamma' : 0.5 #SNLinearRelaxのgamma値
+    'gamma' : [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9] #SNLinearRelaxのgamma値
 }
 #save---------------------------------------------
 folder_params = {k: params[k] for k in ['dataset', 'enc_type', 'cls_type']}
@@ -77,9 +78,6 @@ data_loaders = {
 
 data_train,data_test = data_loaders[params["dataset"]]()
 
-convergence_verify(params,data_train=data_train,data_test=data_test,device=device)
-print("Done")
-
 if params["enc_type"] == 'none':
     params["leverage"] = 1
 results = []
@@ -89,6 +87,22 @@ All_TIMEs_ = []
 
 for variable in params[variable_param]: #variable:leverage,alpha
     print(f'----------------------Running with {variable_param}: {variable}----------------------')
+#-----------------------------------------------------
+    Relres_ = []
+    Unresovable = 0
+    k = 1000
+    Show_rel = False
+    for i in range(k):
+        relres = convergence_verify(params,data_train=data_train,data_test=data_test,device=device,Show=Show_rel)
+        Relres_.append(len(relres))
+        if len(relres) > 40:
+            Unresovable += 1
+        sys.stderr.write(f"\rIteration {i+1}/{k} completed. Current length: {len(relres)}")
+        sys.stdout.flush()
+    time.sleep(1)
+    print(f"Average number of iterations: {np.mean(Relres_)}")
+    print(f"Unresolvable cases: {Unresovable}")
+#-----------------------------------------------------
     All_last_loss = []
     All_loss_test = []
     All_pro_time = []
@@ -116,10 +130,12 @@ for variable in params[variable_param]: #variable:leverage,alpha
         # plot_loss_curve(loss_train_,loss_test_)
         # plot_confusion_matrix(all_labels,all_preds,params["dataset"],Test_acc)
 
-    datas = [All_loss_test,All_test_acc,All_last_loss,All_pro_time]
-
     if save:
+        datas = [All_loss_test,All_test_acc,All_last_loss,All_pro_time]
         save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='mid',experiment_name=experiment_name)
+
+        datas = [Relres_,np.mean(Relres_),Unresovable]
+        save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='relres',experiment_name=experiment_name)
 
     # plot_errorbar_losscurve(All_loss_test)
     # create_table(All_test_acc,All_last_loss,All_pro_time)
