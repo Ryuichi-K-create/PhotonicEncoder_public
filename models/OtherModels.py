@@ -30,11 +30,12 @@ class Cell(nn.Module):
         }
         self.enc1 = encoders[enc_type](x_dim+z_dim,z_dim,alpha,device)
         # self.fc1 = spectral_norm(nn.Linear(z_dim, z_dim))
-        # self.fc1 = nn.Linear(z_dim, z_dim)
-        self.fc1 = SNLinearRelax(z_dim, z_dim, gamma=gamma)
+        self.fc1 = nn.Linear(z_dim, z_dim)
+        # self.fc1 = SNLinearRelax(z_dim, z_dim, gamma=gamma)
 
         self.bn = nn.BatchNorm1d(z_dim)
-        self.act = nn.Tanh()
+        self.act = nn.ReLU()
+        # self.act = nn.Tanh()
     def forward(self,z , x):
         zx = torch.cat([x,z],dim=1)
         z = self.enc1(zx)

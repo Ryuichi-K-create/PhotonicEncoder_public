@@ -37,7 +37,7 @@ params = {
 
     #Encoder_Model--------------------------------
     'enc_type': 'PM', # 'none', 'MZM', 'LI'
-    'alpha': np.pi/4, 
+    'alpha': np.pi/2, 
     #位相変調機の感度[np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16],pi:-π~π
     #class_model--------------------------------------
     'cls_type': 'MLP', # 'MLP' or 'CNN'
@@ -51,9 +51,9 @@ params = {
     'lr': 0.001,
 
     #param--------------------------------------------
-    'num_try': 5,
+    'num_try': 3,
     'max_epochs': 10,
-    'leverage': 16, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
+    'leverage': 8, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
     'kernel_size': 4,
 
     #anderson param-----------------------------------
@@ -93,7 +93,7 @@ for variable in params[variable_param]: #variable:leverage,alpha
     k = 1000
     Show_rel = False
     for i in range(k):
-        relres = convergence_verify(params,data_train=data_train,data_test=data_test,device=device,Show=Show_rel)
+        relres = convergence_verify(params,gamma=variable,data_train=data_train,data_test=data_test,device=device,Show=Show_rel)
         Relres_.append(len(relres))
         if len(relres) > 40:
             Unresovable += 1

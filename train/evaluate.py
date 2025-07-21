@@ -176,13 +176,12 @@ def create_table(All_test_acc,All_last_loss,All_pro_time,Save=False,Show=False):
     if Save:
         return df
 #------------------------------------------------------------------------------------------
-def convergence_verify(params,data_train,data_test,device,Show=False):
+def convergence_verify(params,gamma,data_train,data_test,device,Show=False):
     dataset = params['dataset']
     num_iter = params['num_iter']
     m = params['m']
     tol = params['tol']
     beta = params['beta']
-    gamma = params['gamma']
     kernel_size = params['kernel_size']
     enc_type = params['enc_type']
     leverage = params['leverage']#[0]
@@ -201,7 +200,6 @@ def convergence_verify(params,data_train,data_test,device,Show=False):
 
     # leverageがlistの場合は最初の要素を使用、intの場合はそのまま使用
     leverage_value = leverage[0] if isinstance(leverage, list) else leverage
-    gamma = gamma[0] if isinstance(gamma, list) else gamma
 
     z_dim = int(kernel_in/leverage_value)
     num_patches = int(img_size/kernel_size)**2
