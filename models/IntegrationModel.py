@@ -171,7 +171,7 @@ from .OtherModels import Cell,DEQFixedPoint,anderson
 #--------------------------------------------------------------------
 class DEQ_Image10Classifier(nn.Module):#10クラスの画像用(DEQ)
     def __init__(self, dataset,kernel_size,leverage,
-                 enc_type,alpha,cls_type,num_layer,fc,dropout,num_iter,m,tol,beta,lam,device):
+                 enc_type,alpha,cls_type,num_layer,fc,dropout,num_iter,m,tol,beta,gamma,lam,device):
         super(DEQ_Image10Classifier, self).__init__() #DEQ_Image10Classifier, self
         self.device = device
         dataset_config = {
@@ -198,7 +198,7 @@ class DEQ_Image10Classifier(nn.Module):#10クラスの画像用(DEQ)
         potential_dim = self.z_dim
         self.num_iter = num_iter
         #--------------------------------------------
-        cell = Cell(kernel_in_total, self.z_dim,enc_type,alpha,device).to(device)
+        cell = Cell(kernel_in_total, self.z_dim,enc_type,alpha,gamma,device).to(device)
         self.deq_main = DEQFixedPoint(cell,anderson,self.z_dim,
                                       m = m,
                                       num_iter = num_iter,

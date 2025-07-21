@@ -182,6 +182,7 @@ def convergence_verify(params,data_train,data_test,device,Show=False):
     m = params['m']
     tol = params['tol']
     beta = params['beta']
+    gamma = params['gamma']
     kernel_size = params['kernel_size']
     enc_type = params['enc_type']
     leverage = params['leverage']#[0]
@@ -197,14 +198,16 @@ def convergence_verify(params,data_train,data_test,device,Show=False):
     img_size = dataset_config[dataset]['img_size']
     channels = dataset_config[dataset]['channels']
     kernel_in = int(channels*kernel_size**2)
-    z_dim = int(kernel_in/leverage)
+    # leverageがlistの場合は最初の要素を使用、intの場合はそのまま使用
+    leverage_value = leverage[0] if isinstance(leverage, list) else leverage
+    z_dim = int(kernel_in/leverage_value)
     num_patches = int(img_size/kernel_size)**2
-    cell = Cell(kernel_in, z_dim,enc_type,alpha,device).to(device)
+    cell = Cell(kernel_in, z_dim,enc_type,alpha,gamma,device).to(device)
     #----------------------------------------------
-    with torch.no_grad():
-        W = cell.fc1.weight            # (out_dim, in_dim)
-        sigma_max = torch.linalg.svdvals(W).max()  # 最大特異値
-        print(f"Spectrum norm ||W||_2 = {sigma_max.item():.4f}")
+    # with torch.no_grad():
+    #     W = cell.fc1.weight            # (out_dim, in_dim)
+    #     sigma_max = torch.linalg.svdvals(W).max()  # 最大特異値
+    #     print(f"Spectrum norm ||W||_2 = {sigma_max.item():.4f}")
     #----------------------------------------------
     # 可視化用に 1 バッチだけ入力（ここでは乱数）
     batch_size = 64

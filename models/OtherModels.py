@@ -20,7 +20,7 @@ class SNLinearRelax(nn.Linear):
         return F.linear(x, self.gamma * self.weight, self.bias)
 
 class Cell(nn.Module):
-    def __init__(self, x_dim, z_dim,enc_type,alpha,device):
+    def __init__(self, x_dim, z_dim,enc_type,alpha,gamma,device):
         super().__init__()
         encoders = {
             'PM':PMEncoder,
@@ -31,7 +31,7 @@ class Cell(nn.Module):
         self.enc1 = encoders[enc_type](x_dim+z_dim,z_dim,alpha,device)
         # self.fc1 = spectral_norm(nn.Linear(z_dim, z_dim))
         # self.fc1 = nn.Linear(z_dim, z_dim)
-        self.fc1 = SNLinearRelax(z_dim, z_dim, gamma=0.5)
+        self.fc1 = SNLinearRelax(z_dim, z_dim, gamma=gamma)
 
         self.bn = nn.BatchNorm1d(z_dim)
         self.act = nn.Tanh()

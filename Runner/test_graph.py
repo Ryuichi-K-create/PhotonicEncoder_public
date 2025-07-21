@@ -28,7 +28,7 @@ dataset = 'fashion-mnist'
 variable_param = 'leverage'
 
 #-------------------------1stParameter--------------------------
-labels.append('(1)DEQ')
+labels.append('(1)PM_DEQ')
 enc_type = 'PM'
 cls_type = 'MLP'
 variable_value = [4,8,16]  # 例: variableの値
@@ -38,17 +38,24 @@ experiment_name = 'DEQ7180001'
 file_pathes.append(os.path.join(onedrive_path,'PhotonicEncoder_data',dataset, variable_param + '_variable', enc_type, cls_type, experiment_name, 'Final_results.csv'))
 
 #-------------------------2ndParameter--------------------------
-labels.append('(2)Normal')
+labels.append('(2)PM_Normal')
 enc_type = 'PM'
 cls_type = 'MLP'
 variable_value = [4,8,16]  # 例: variableの値
 num_times = 5  # 試行回数
-experiment_name = 'Normal7181422'  #[PM,IM,MZ,LI]の順番で保存される
+experiment_name = 'Normal7181422'  
 
 file_pathes.append(os.path.join(onedrive_path,'PhotonicEncoder_data',dataset, variable_param + '_variable', enc_type, cls_type, experiment_name, 'Final_results.csv'))
 
 #-------------------------3rdParameter--------------------------
+labels.append('(3)LI_Normal')
+enc_type = 'LI'
+cls_type = 'MLP'
+variable_value = [4,8,16]  # 例: variableの値
+num_times = 5  # 試行回数
+experiment_name = 'Normal7212000' 
 
+file_pathes.append(os.path.join(onedrive_path,'PhotonicEncoder_data',dataset, variable_param + '_variable', enc_type, cls_type, experiment_name, 'Final_results.csv'))
 #---------------------------------------------------------------
 if variable_param == 'leverage':
     if dataset in ('mnist', 'fashion-mnist') :

@@ -52,7 +52,7 @@ params = {
     #param--------------------------------------------
     'num_try': 5,
     'max_epochs': 10,
-    'leverage': [1,2,4,8,16], #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
+    'leverage': 16, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
     'kernel_size': 4,
 
     #anderson param-----------------------------------
@@ -60,7 +60,8 @@ params = {
     'lam': 1e-4, 
     'num_iter': 25,
     'tol': 1e-4,  #早期終了条件
-    'beta': 1.0
+    'beta': 1.0,
+    'gamma' : 0.5 #SNLinearRelaxのgamma値
 }
 #save---------------------------------------------
 folder_params = {k: params[k] for k in ['dataset', 'enc_type', 'cls_type']}
