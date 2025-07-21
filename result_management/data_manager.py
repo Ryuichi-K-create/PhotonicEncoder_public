@@ -278,7 +278,6 @@ def create_result_pdf(variable_param, params,experiment_name='Normal'):
         #gammaのリストを設定
         elif variable_param == 'gamma':
             memory_lis = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
-
         file_path = os.path.join(folder_path, 'Final_results.csv')
         final_loss_name, final_acc_name = final_graph_maker([file_path], variable_param,params[variable_param], memory_lis, 'Photonic Encoder', Save=True)
 

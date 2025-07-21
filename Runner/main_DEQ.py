@@ -26,8 +26,8 @@ print(f'-----Formatted time: {formatted_time} -----')
 experiment_type = "DEQ"
 experiment_name = f"{experiment_type}{formatted_time}"
 
-variable_param = "gamma" #ここで設定した項目は配列にすること(none,leverage,alpha)
-save = False
+variable_param = "none" #ここで設定した項目は配列にすること(none,leverage,alpha)
+save = True
 
 params = {
     'none':[0], #variable_param=noneの際は1回だけ繰り返す
@@ -57,12 +57,12 @@ params = {
     'kernel_size': 4,
 
     #anderson param-----------------------------------
-    'm': 10,
-    'lam': 1e-4, 
-    'num_iter': 25,
+    'm': 5,
+    'lam': 1e-5, 
+    'num_iter': 50,
     'tol': 1e-4,  #早期終了条件
     'beta': 1.0,
-    'gamma' : [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9] #SNLinearRelaxのgamma値
+    'gamma' : 0.5 #SNLinearRelaxのgamma値
 }
 #save---------------------------------------------
 folder_params = {k: params[k] for k in ['dataset', 'enc_type', 'cls_type']}
@@ -93,7 +93,7 @@ for variable in params[variable_param]: #variable:leverage,alpha
     k = 1000
     Show_rel = False
     for i in range(k):
-        relres = convergence_verify(params,gamma=variable,data_train=data_train,data_test=data_test,device=device,Show=Show_rel)
+        relres = convergence_verify(params,gamma=params['gamma'],data_train=data_train,data_test=data_test,device=device,Show=Show_rel)
         Relres_.append(len(relres))
         if len(relres) > 40:
             Unresovable += 1
