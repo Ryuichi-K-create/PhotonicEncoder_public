@@ -22,8 +22,10 @@ formatted_time = now.strftime("%m%d%H%M")
 formatted_time = int(formatted_time)
 print(f'-----Formatted time: {formatted_time} -----')
 #-----------------------------------------------------------------
+experiment_type = "Normal"
+experiment_name = f"{experiment_type}{formatted_time}"
 variable_param = "none" #ここで設定した項目は配列にすること(none,leverage,alpha)
-save = False
+save = True
 
 params = {
     'none':[0], #variable_param=noneの際は1回だけ繰り返す
@@ -33,7 +35,7 @@ params = {
 
     #Encoder_Model--------------------------------
     'enc_type': 'PM', # 'none', 'MZM', 'LI'
-    'alpha': np.pi/4, 
+    'alpha': np.pi/2, 
     #位相変調機の感度[np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16],pi:-π~π
     #class_model--------------------------------------
     'cls_type': 'MLP', # 'MLP' or 'CNN'
@@ -55,7 +57,7 @@ params = {
 #save---------------------------------------------
 folder_params = {k: params[k] for k in ['dataset', 'enc_type', 'cls_type']}
 if save:
-    save_experiment_report(variable_param, params)
+    save_experiment_report(variable_param, params,experiment_name=experiment_name)
 
 data_loaders = {
     'cifar-10': load_CIFAR10_data,
@@ -96,7 +98,7 @@ for variable in params[variable_param]: #variable:leverage,alpha
         All_test_acc.append(Test_acc)
         if save:
             datas = [loss_train_,loss_test_,all_labels,all_preds,Test_acc]
-            save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='trial')
+            save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='trial',experiment_name=experiment_name)
 
         # plot_loss_curve(loss_train_,loss_test_)
         # plot_confusion_matrix(all_labels,all_preds,params["dataset"],Test_acc)
@@ -104,7 +106,7 @@ for variable in params[variable_param]: #variable:leverage,alpha
     datas = [All_loss_test,All_test_acc,All_last_loss,All_pro_time]
 
     if save:
-        save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='mid')
+        save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='mid',experiment_name=experiment_name)
 
     # plot_errorbar_losscurve(All_loss_test)
     # create_table(All_test_acc,All_last_loss,All_pro_time)
@@ -115,7 +117,6 @@ for variable in params[variable_param]: #variable:leverage,alpha
 
 if variable_param != 'none'and save:
     datas = [All_last_ACCs_,All_last_LOSSs_,All_TIMEs_]
-    save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='final') #最終保存
+    save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='final',experiment_name=experiment_name) #最終保存
 
-    params.update({'formatted_time': str(formatted_time)})
-    create_result_pdf(variable_param, params)
+    create_result_pdf(variable_param, params,experiment_name=experiment_name)
