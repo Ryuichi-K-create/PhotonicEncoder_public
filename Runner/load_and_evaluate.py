@@ -6,7 +6,7 @@ from result_management.data_manager import create_result_pdf
 # from train.evaluate import plot_loss_curve, plot_errorbar_losscurve, plot_confusion_matrix, plot_histograms, create_table, convergence_verify, final_graph_maker
 print("-------import finished-------")
 #--------------------------------------------------------
-experiment_name = ''
+experiment_name = 'Normal7230016'
 variable_param = "none"  # 例: "alpha", "leverage", "none"
 params={
     'dataset': 'fashion-mnist',  # 'mnist', 'cifar-10', 'cinic-10', 'fashion-mnist'
@@ -17,4 +17,4 @@ params={
     'num_try': 5,  # 試行回数
 }
 
-create_result_pdf(variable_param, params)
+create_result_pdf(variable_param, params, experiment_name=experiment_name)

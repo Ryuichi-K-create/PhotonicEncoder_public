@@ -99,7 +99,7 @@ for variable in params[variable_param]: #variable:leverage,alpha
         if save:
             datas = [loss_train_,loss_test_,all_labels,all_preds,Test_acc]
             save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='trial',experiment_name=experiment_name)
-
+        print(f"Test Accuracy:{Test_acc:.2f}")
         # plot_loss_curve(loss_train_,loss_test_)
         # plot_confusion_matrix(all_labels,all_preds,params["dataset"],Test_acc)
 
