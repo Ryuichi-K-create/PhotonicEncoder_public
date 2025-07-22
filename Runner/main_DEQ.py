@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import time
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# sys.path.append(os.path.abspath("..")) 
 from datetime import datetime
 
 if torch.cuda.is_available():
@@ -26,7 +27,7 @@ print(f'-----Formatted time: {formatted_time} -----')
 experiment_type = "DEQ"
 experiment_name = f"{experiment_type}{formatted_time}"
 
-variable_param = "none" #ここで設定した項目は配列にすること(none,leverage,alpha)
+variable_param = "leverage" #ここで設定した項目は配列にすること(none,leverage,alpha)
 save = True
 
 params = {
@@ -36,7 +37,7 @@ params = {
     'batch_size': 100, #64 MNIST, 100 CIFAR10, 100 CINIC10
 
     #Encoder_Model--------------------------------
-    'enc_type': 'PM', # 'none', 'MZM', 'LI'
+    'enc_type': 'IM', # 'none', 'MZM', 'LI'
     'alpha': np.pi/2, 
     #位相変調機の感度[np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16],pi:-π~π
     #class_model--------------------------------------
@@ -53,7 +54,7 @@ params = {
     #param--------------------------------------------
     'num_try': 3,
     'max_epochs': 10,
-    'leverage': 8, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
+    'leverage': [4,8,16], #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
     'kernel_size': 4,
 
     #anderson param-----------------------------------
