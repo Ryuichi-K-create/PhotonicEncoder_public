@@ -383,3 +383,39 @@ def final_graph_maker(file_pathes,variable_param,variable_values,memory_lis,labe
 
         return tmp_loss.name, tmp_acc.name
 #-----------------------------------------------------------
+
+def epoch_graph_maker(file_pathes, variable_param, variable_values, memory_lis,labels,Save=False, Show=False):
+    fmts =  ['-o', '-s', '-^', '-D']
+
+    fig, ax1 = plt.subplots()
+
+    i = 0
+    for file_path in file_pathes:
+        with open(file_path, 'r') as file:
+            reader = csv.reader(file)
+            rows = list(reader)
+        
+        # 1行目（All_loss_test）を取得してリストに変換
+        All_loss_test = [eval(loss_str) for loss_str in rows[0]]
+        
+        epochs = len(All_loss_test[0]) 
+        mean_loss = np.mean(All_loss_test, axis=0)
+        std_loss = np.std(All_loss_test, axis=0)
+        ax1.errorbar(
+            x=range(1, epochs + 1), y=mean_loss, yerr=std_loss,
+            fmt=fmts[i], color=colors[i], ecolor=colors[i], capsize=5 ,label=labels[i]
+        )
+        i += 1
+
+    ax1.set_xlabel('Epochs', fontsize=15)
+    ax1.set_ylabel('LOSS', fontsize=15)
+    ax1.legend(fontsize=15, loc='upper right')
+    ax1.grid(True)
+
+    if Show:
+        plt.show()
+    if Save:
+        tmp_img = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
+        fig.savefig(tmp_img.name, bbox_inches='tight')
+        plt.close(fig)
+        return tmp_img.name

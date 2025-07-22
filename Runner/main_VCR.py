@@ -119,4 +119,4 @@ if variable_param != 'none'and save:
     datas = [All_last_ACCs_,All_last_LOSSs_,All_TIMEs_]
     save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='final',experiment_name=experiment_name) #最終保存
 
-    create_result_pdf(variable_param, params,experiment_name=experiment_name)
+create_result_pdf(variable_param, params,experiment_name=experiment_name)

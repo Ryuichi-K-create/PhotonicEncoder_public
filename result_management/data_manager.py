@@ -132,7 +132,7 @@ def save_experiment_report(variable_param, params,experiment_name='Normal'):
     print(f"実験パラメータ報告書を保存しました: {report_path}")
 
 #--------------------------------------------------------------------------------
-def create_result_pdf(variable_param, params,experiment_name='Normal'):
+def create_result_pdf(variable_param, params,experiment_name='Normal',Show=False):
     folder_path = os.path.join(onedrive_path, 'PhotonicEncoder_data', params['dataset'],f"{variable_param}_variable", params['enc_type'], params['cls_type'], str(experiment_name))
     file_name = 'experiment_report.pdf'
     c = canvas.Canvas(f"{folder_path}/{file_name}", pagesize=A4)
@@ -195,8 +195,8 @@ def create_result_pdf(variable_param, params,experiment_name='Normal'):
             c.drawString(right_x, current_y, f"Trial #{num_times+1}: Confusion Matrix")
             current_y -= (IMG_HEIGHT + 15)
 
-            loss_curve_name = plot_loss_curve(loss_train_, loss_test_, Save=True)
-            confusion_name = plot_confusion_matrix(all_labels, all_preds, params['dataset'], Test_acc, Save=True)
+            loss_curve_name = plot_loss_curve(loss_train_, loss_test_, Save=True,Show=Show)
+            confusion_name = plot_confusion_matrix(all_labels, all_preds, params['dataset'], Test_acc, Save=True,Show=Show)
             c.drawImage(ImageReader(loss_curve_name), left_x, current_y, width=IMG_WIDTH, height=IMG_HEIGHT, preserveAspectRatio=True)
             c.drawImage(ImageReader(confusion_name), right_x, current_y, width=IMG_WIDTH, height=IMG_HEIGHT, preserveAspectRatio=True)
             current_y -= V_GAP
@@ -219,10 +219,10 @@ def create_result_pdf(variable_param, params,experiment_name='Normal'):
         current_y -= 15 # ラベルとコンテンツの間のスペース
 
         # Errorbar Loss
-        error_loss_name = plot_errorbar_losscurve(All_loss_test, Save=True)
+        error_loss_name = plot_errorbar_losscurve(All_loss_test, Save=True,Show=Show)
         
         # Table
-        df = create_table(All_test_acc, All_last_loss, All_pro_time,Save=True)
+        df = create_table(All_test_acc, All_last_loss, All_pro_time,Save=True,Show=Show)
         
         table_h = 0
         if df is not None:
@@ -279,7 +279,7 @@ def create_result_pdf(variable_param, params,experiment_name='Normal'):
         elif variable_param == 'gamma':
             memory_lis = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
         file_path = os.path.join(folder_path, 'Final_results.csv')
-        final_loss_name, final_acc_name = final_graph_maker([file_path], variable_param,params[variable_param], memory_lis, 'Photonic Encoder', Save=True)
+        final_loss_name, final_acc_name = final_graph_maker([file_path], variable_param,params[variable_param], memory_lis, 'Photonic Encoder', Save=True,Show=Show)
 
         # ラベルを描画
         c.setFont("Times-Roman", 12)

@@ -37,7 +37,7 @@ params = {
     'batch_size': 100, #64 MNIST, 100 CIFAR10, 100 CINIC10
 
     #Encoder_Model--------------------------------
-    'enc_type': 'IM', # 'none', 'MZM', 'LI'
+    'enc_type': 'PM', # 'none', 'MZM', 'LI'
     'alpha': np.pi/2, 
     #位相変調機の感度[np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16],pi:-π~π
     #class_model--------------------------------------
@@ -54,7 +54,7 @@ params = {
     #param--------------------------------------------
     'num_try': 3,
     'max_epochs': 10,
-    'leverage': [4,8,16], #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
+    'leverage': [2], #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
     'kernel_size': 4,
 
     #anderson param-----------------------------------
@@ -128,7 +128,7 @@ for variable in params[variable_param]: #variable:leverage,alpha
         if save:
             datas = [loss_train_,loss_test_,all_labels,all_preds,Test_acc]
             save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='trial',experiment_name=experiment_name)
-
+        print(f'Test Accuracy: {Test_acc}')
         # plot_loss_curve(loss_train_,loss_test_)
         # plot_confusion_matrix(all_labels,all_preds,params["dataset"],Test_acc)
 
