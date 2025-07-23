@@ -138,7 +138,7 @@ for variable in params[variable_param]: #variable:leverage,alpha
 
         datas = [Relres_,np.mean(Relres_),Unresovable]
         save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='relres',experiment_name=experiment_name)
-
+    print(f"Test Accuracy:{Test_acc:.2f}")
     # plot_errorbar_losscurve(All_loss_test)
     # create_table(All_test_acc,All_last_loss,All_pro_time)
 
