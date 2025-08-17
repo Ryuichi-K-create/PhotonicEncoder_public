@@ -27,7 +27,7 @@ experiment_type = "DEQ"
 experiment_name = f"{experiment_type}{formatted_time}"
 
 variable_param = "leverage" #ここで設定した項目は配列にすること(none,leverage,alpha)
-save = True
+save = False
 
 params = {
     'none':[0], #variable_param=noneの際は1回だけ繰り返す
