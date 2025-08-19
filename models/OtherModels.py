@@ -40,7 +40,8 @@ class Cell(nn.Module):
         zx = torch.cat([x,z],dim=1)
         z = self.enc1(zx)
         #以下、積和演算電子回路-----------------------
-        z = self.bn(z)
+        if x.shape[0] != 1:
+            z = self.bn(z)
         z = self.fc1(z)
         z = self.act(z)
         return z

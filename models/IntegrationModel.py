@@ -23,11 +23,7 @@ class PMEncoder(nn.Module):
 
         self.B = torch.complex(real_part, imag_part).detach().to(device)
         self.B.requires_grad = False
-        # self.alpha = (torch.rand(input_dim) - 0.5) * np.pi #-pi/2 ~ pi/2
-        # self.alpha = (torch.rand(input_dim)-1) * 2 * np.pi #-π ~ π
-        self.alpha = (torch.rand(input_dim) - 0.5) * (2*alpha) # -π/4 ~ π/4
-        # self.alpha = torch.rand(input_dim) * 2 * np.pi #0~ 2pi
-        # self.alpha = torch.rand(input_dim) * 0.5 + 0.5
+        self.alpha = (torch.rand(input_dim) - 0.5) * (2*alpha) 
         self.alpha = self.alpha.detach().to(device) 
         self.alpha.requires_grad = False
 

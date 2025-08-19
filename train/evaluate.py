@@ -1,5 +1,4 @@
 import torch
-import os
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 rcParams['font.family'] = 'Times New Roman'
@@ -7,7 +6,6 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import csv
-from datetime import datetime
 from sklearn.metrics import confusion_matrix
 import random
 import tempfile
@@ -192,7 +190,7 @@ def convergence_verify(params,gamma,data_train,data_test,device,Show=False):
         'cifar-10':  {'img_size': 32, 'channels': 3},
         'cinic-10': {'img_size':32, 'channels':3},
         'fashion-mnist': {'img_size': 28, 'channels': 1},
-        'cifar-100': {'img_size': 32, 'channels': 3},
+        'cifar-100': {'img_size': 32, 'channels': 3}
     }
     img_size = dataset_config[dataset]['img_size']
     channels = dataset_config[dataset]['channels']
@@ -210,7 +208,7 @@ def convergence_verify(params,gamma,data_train,data_test,device,Show=False):
     #     sigma_max = torch.linalg.svdvals(W).max()  # 最大特異値
     #     print(f"Spectrum norm ||W||_2 = {sigma_max.item():.4f}")
     #----------------------------------------------
-    # 可視化用に 1 バッチだけ入力（ここでは乱数）
+    # 可視化用に 1 バッチだけ入力
     batch_size = 64
     _,test_dataloader = get_new_dataloader(data_train,data_test,batch_size)
     for x_batch, _ in test_dataloader:
@@ -249,6 +247,71 @@ def convergence_verify(params,gamma,data_train,data_test,device,Show=False):
         plt.tight_layout()
         plt.show()
     return relres
+
+def convergence_verify_tabular(params, gamma, data_train, data_test, device, Show=False):
+    # ---- params ----
+    data_set    = params['dataset'] 
+    num_iter    = params['num_iter']
+    m           = params['m']
+    tol         = params['tol']
+    beta        = params['beta']
+    enc_type    = params['enc_type']   # 'PM' / 'IM' / 'MZM' / 'LI' など
+    leverage    = params['leverage']   # int か [int]
+    alpha       = params['alpha']      # 位相感度など Cell に渡す
+
+    # leverage が list なら先頭を採用
+    leverage_value = leverage[0] if isinstance(leverage, list) else leverage
+
+    data_size = {
+        "covtype": 54
+    }
+    z_dim = int(data_size["covtype"] / leverage_value)
+    cell = Cell(data_size["covtype"], z_dim, enc_type, alpha, gamma, device).to(device)
+
+    # ---- dataloader から1バッチだけ取り、そこから1標本(or 小バッチ)を作る ----
+    batch_size = 64
+    _, test_loader = get_new_dataloader(data_train, data_test, batch_size)
+    for x_batch, _ in test_loader:
+        idx = random.randint(0, batch_size - 1)
+        x_sample = x_batch[idx].to(device)  # 形状: (D,)
+        break
+
+    relres = []
+    with torch.no_grad():
+        B = 1
+        x_sample = x_sample.view(B, data_size["covtype"])  # 形状: (B, D)
+
+        def fc(z):
+            # z: (B, z_dim) を想定
+            return cell(z, x_sample)
+
+        # 初期値 z0
+        z0 = torch.zeros(B, z_dim, device=device)
+
+        # ---- Anderson 反復を実行 ----
+        z_final, relres = anderson(
+            fc,
+            z0,
+            z_dim=z_dim,
+            m=m,
+            num_iter=num_iter,
+            tol=tol,
+            beta=beta
+        )
+
+    # ---- 可視化 ----
+    if Show:
+        plt.figure(figsize=(6,4))
+        plt.semilogy(range(1, len(relres)+1), relres, marker="o")
+        plt.xlabel("iteration")
+        plt.ylabel("relative residual")
+        plt.title("convergence on tabular sample (relative residual)")
+        plt.grid(True, which="both")
+        plt.tight_layout()
+        plt.show()
+
+    return relres
+
 
 #------------------------------------------------------------------------------------------
 def show_images(images,labels,dataset,fixed_indices):

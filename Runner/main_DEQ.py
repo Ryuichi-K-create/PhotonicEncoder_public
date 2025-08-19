@@ -62,7 +62,7 @@ params = {
     'num_iter': 50,
     'tol': 1e-4,  #早期終了条件
     'beta': 1.0,
-    'gamma' : 0.5 #SNLinearRelaxのgamma値
+    'gamma' : 0 #SNLinearRelaxのgamma値(使わない)
 }
 #save---------------------------------------------
 folder_params = {k: params[k] for k in ['dataset', 'enc_type', 'cls_type']}
