@@ -33,7 +33,7 @@ params = {
     'none':[0], #variable_param=noneの際は1回だけ繰り返す
     #data---------------------------------------------
     'dataset': 'covtype', # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
-    'batch_size': 100, #64 MNIST, 100 CIFAR10, 100 CINIC10
+    'batch_size': 512, #64 MNIST, 100 CIFAR10, 100 CINIC10, 512 COVTYPE
 
     #Encoder_Model--------------------------------
     'enc_type': 'PM', # 'none', 'MZM', 'LI'
@@ -76,7 +76,13 @@ data_loaders = {
     'mnist': load_MNIST_data,
     'fashion-mnist':load_Fmnist_data
 }
-
+convergence_verifies = {
+    'covtype': convergence_verify_tabular,
+    'cifar-10': convergence_verify,
+    'cinic-10': convergence_verify,
+    'mnist': convergence_verify,
+    'fashion-mnist': convergence_verify
+}
 data_train,data_test = data_loaders[params["dataset"]]()
 
 if params["enc_type"] == 'none':
@@ -89,20 +95,20 @@ All_TIMEs_ = []
 for variable in params[variable_param]: #variable:leverage,alpha
     print(f'----------------------Running with {variable_param}: {variable}----------------------')
 #-----------------------------------------------------
-    Relres_ = []
-    Unresovable = 0
-    k = 1000
-    Show_rel = False
-    for i in range(k):
-        relres = convergence_verify_tabular(params,gamma=params['gamma'],data_train=data_train,data_test=data_test,device=device,Show=Show_rel)
-        Relres_.append(len(relres))
-        if len(relres) > 40:
-            Unresovable += 1
-        sys.stderr.write(f"\rIteration {i+1}/{k} completed. Current length: {len(relres)}")
-        sys.stdout.flush()
-    time.sleep(1)
-    print(f"Average number of iterations: {np.mean(Relres_)}")
-    print(f"Unresolvable cases: {Unresovable}")
+    # Relres_ = []
+    # Unresovable = 0
+    # k = 1000
+    # Show_rel = False
+    # for i in range(k):
+    #     relres = convergence_verifies[params["dataset"]](params,gamma=params['gamma'],data_train=data_train,data_test=data_test,device=device,Show=Show_rel)
+    #     Relres_.append(len(relres))
+    #     if len(relres) > 40:
+    #         Unresovable += 1
+    #     sys.stderr.write(f"\rIteration {i+1}/{k} completed. Current length: {len(relres)}")
+    #     sys.stdout.flush()
+    # time.sleep(1)
+    # print(f"Average number of iterations: {np.mean(Relres_)}")
+    # print(f"Unresolvable cases: {Unresovable}")
 #-----------------------------------------------------
     All_last_loss = []
     All_loss_test = []

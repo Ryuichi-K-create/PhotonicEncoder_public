@@ -13,7 +13,7 @@ else:
     device = torch.device('cpu')
 print(f'Using device: {device}')
 
-from dataloader.dataloader import load_MNIST_data,load_CINIC10_data,load_CIFAR10_data,load_Fmnist_data
+from dataloader.dataloader import load_MNIST_data,load_CINIC10_data,load_CIFAR10_data,load_Fmnist_data,load_Covtype_data
 from train.training import train_nomal,train_for_DEQ
 from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusion_matrix,plot_histograms,create_table,convergence_verify
 from result_management.data_manager import save_csv,auto_git_push,save_experiment_report,create_result_pdf
@@ -25,13 +25,13 @@ print(f'-----Formatted time: {formatted_time} -----')
 experiment_type = "Normal"
 experiment_name = f"{experiment_type}{formatted_time}"
 variable_param = "none" #ここで設定した項目は配列にすること(none,leverage,alpha)
-save = True
+save = False
 
 params = {
     'none':[0], #variable_param=noneの際は1回だけ繰り返す
     #data---------------------------------------------
-    'dataset': 'fashion-mnist', # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
-    'batch_size': 100, #64 MNIST, 100 CIFAR10, 100 CINIC10
+    'dataset': 'covtype', # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
+    'batch_size': 512, #64 MNIST, 100 CIFAR10, 100 CINIC10
 
     #Encoder_Model--------------------------------
     'enc_type': 'PM', # 'none', 'MZM', 'LI'
@@ -63,7 +63,8 @@ data_loaders = {
     'cifar-10': load_CIFAR10_data,
     'cinic-10': load_CINIC10_data,
     'mnist': load_MNIST_data,
-    'fashion-mnist':load_Fmnist_data
+    'fashion-mnist':load_Fmnist_data,
+    'covtype': load_Covtype_data
 }
 
 data_train,data_test = data_loaders[params["dataset"]]()

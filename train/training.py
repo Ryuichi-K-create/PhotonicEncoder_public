@@ -26,9 +26,9 @@ def train_nomal(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
     }
     #---------------------------------------------
     loss_funcs = {
-        'cross_entropy':nn.CrossEntropyLoss(),
-        'mse':nn.MSELoss(),
-        'bce':nn.BCELoss()
+        'cross_entropy':nn.CrossEntropyLoss,
+        'mse':nn.MSELoss,
+        'bce':nn.BCELoss
     }
     #---------------------------------------------
     optimizers = {
@@ -52,9 +52,9 @@ def train_nomal(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
         counts = [211840, 283301, 35754, 2747, 9493, 17367, 20510] #covtypeのy_originの各ラベル数。
         class_w = torch.tensor(1.0 / np.sqrt(counts), 
                                dtype=torch.float32).to(device)
-        criterion = nn.CrossEntropyLoss(weight=class_w, label_smoothing=0.05)
+        criterion = loss_funcs[loss_func](weight=class_w, label_smoothing=0.05)
     else:
-        criterion = loss_funcs[loss_func]
+        criterion = loss_funcs[loss_func]()
     optimizer = optimizers[optimizer](model.parameters(), lr)
 
     for epoch in range(max_epochs):
@@ -118,9 +118,9 @@ def train_for_DEQ(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
     }
     #---------------------------------------------
     loss_funcs = {
-        'cross_entropy':nn.CrossEntropyLoss(),
-        'mse':nn.MSELoss(),
-        'bce':nn.BCELoss()
+        'cross_entropy':nn.CrossEntropyLoss,
+        'mse':nn.MSELoss,
+        'bce':nn.BCELoss
     }
     #---------------------------------------------
     optimizers = {
@@ -138,7 +138,14 @@ def train_for_DEQ(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
                                                             data_test,batch_size)
     model = models[dataset](dataset,kernel_size,leverage,
                             enc_type,alpha,cls_type,num_layer,fc,dropout,num_iter,m,tol,beta,gamma,lam,device)
-    criterion = loss_funcs[loss_func]
+    if dataset == 'covtype':
+        counts = [211840, 283301, 35754, 2747, 9493, 17367, 20510] #covtypeのy_originの各ラベル数。
+        class_w = torch.tensor(1.0 / np.sqrt(counts), 
+                               dtype=torch.float32).to(device)
+        criterion = loss_funcs[loss_func](weight=class_w, label_smoothing=0.05)
+    else:
+        criterion = loss_funcs[loss_func]()
+    
     optimizer = optimizers[optimizer](model.parameters(), lr)
 
     for epoch in range(max_epochs):
