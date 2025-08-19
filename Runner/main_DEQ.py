@@ -14,10 +14,10 @@ else:
     device = torch.device('cpu')
 print(f'Using device: {device}')
 
-from dataloader.dataloader import load_MNIST_data,load_CINIC10_data,load_CIFAR10_data,load_Fmnist_data
-from train.training import train_for_DEQ, train_nomal
-from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusion_matrix,plot_histograms,create_table,convergence_verify
-from result_management.data_manager import save_csv,auto_git_push,save_experiment_report,create_result_pdf
+from dataloader.dataloader import load_MNIST_data,load_CINIC10_data,load_CIFAR10_data,load_Fmnist_data,load_Covtype_data
+from train.training import train_for_DEQ
+from train.evaluate import convergence_verify,convergence_verify_tabular
+from result_management.data_manager import save_csv,save_experiment_report,create_result_pdf
 now = datetime.now()
 formatted_time = now.strftime("%m%d%H%M")
 formatted_time = int(formatted_time)
@@ -26,13 +26,13 @@ print(f'-----Formatted time: {formatted_time} -----')
 experiment_type = "DEQ"
 experiment_name = f"{experiment_type}{formatted_time}"
 
-variable_param = "leverage" #ここで設定した項目は配列にすること(none,leverage,alpha)
-save = True
+variable_param = "none" #ここで設定した項目は配列にすること(none,leverage,alpha)
+save = False
 
 params = {
     'none':[0], #variable_param=noneの際は1回だけ繰り返す
     #data---------------------------------------------
-    'dataset': 'fashion-mnist', # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
+    'dataset': 'covtype', # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
     'batch_size': 100, #64 MNIST, 100 CIFAR10, 100 CINIC10
 
     #Encoder_Model--------------------------------
@@ -53,7 +53,7 @@ params = {
     #param--------------------------------------------
     'num_try': 3,
     'max_epochs': 10,
-    'leverage': [2,4,8,16], #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
+    'leverage': 9, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
     'kernel_size': 4,
 
     #anderson param-----------------------------------
@@ -70,6 +70,7 @@ if save:
     save_experiment_report(variable_param, params,experiment_name=experiment_name)
 
 data_loaders = {
+    'covtype': load_Covtype_data,
     'cifar-10': load_CIFAR10_data,
     'cinic-10': load_CINIC10_data,
     'mnist': load_MNIST_data,
@@ -93,7 +94,7 @@ for variable in params[variable_param]: #variable:leverage,alpha
     k = 1000
     Show_rel = False
     for i in range(k):
-        relres = convergence_verify(params,gamma=params['gamma'],data_train=data_train,data_test=data_test,device=device,Show=Show_rel)
+        relres = convergence_verify_tabular(params,gamma=params['gamma'],data_train=data_train,data_test=data_test,device=device,Show=Show_rel)
         Relres_.append(len(relres))
         if len(relres) > 40:
             Unresovable += 1

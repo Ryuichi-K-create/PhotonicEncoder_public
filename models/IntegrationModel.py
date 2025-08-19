@@ -219,3 +219,37 @@ class DEQ_Image10Classifier(nn.Module):#10クラスの画像用(DEQ)
         x = x.reshape(b * self.num_patches,-1)
         x = self.classifier(x,b)
         return x
+
+
+class DEQ_Table10Classifier(nn.Module):#10クラスの画像用(DEQ)
+    def __init__(self, dataset,kernel_size,leverage,
+                 enc_type,alpha,cls_type,num_layer,fc,dropout,num_iter,m,tol,beta,gamma,lam,device):
+        super(DEQ_Table10Classifier, self).__init__()
+        self.device = device
+        dataset_config = {
+            'covtype': {'input_dim': 54}
+        }
+        classifiers = {
+            'MLP':MLP_for_7
+        }
+        self.input_dim = dataset_config[dataset]['input_dim']
+        self.z_dim = int(self.input_dim/leverage)
+        potential_dim = self.z_dim
+        self.num_iter = num_iter
+        #--------------------------------------------
+        cell = Cell(self.input_dim, self.z_dim,enc_type,alpha,gamma,device).to(device)
+        self.deq_main = DEQFixedPoint(cell,anderson,self.z_dim,
+                                      m = m,
+                                      num_iter = num_iter,
+                                      tol = tol,
+                                      beta = beta,
+                                      lam = lam
+                                      )
+
+        self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc,n_patches=None,dropout=dropout).to(device)
+        
+    def forward(self, x):
+        b=x.size(0)
+        x = self.deq_main(x)
+        x = self.classifier(x,b)
+        return x
