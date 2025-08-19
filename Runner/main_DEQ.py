@@ -27,7 +27,7 @@ experiment_type = "DEQ"
 experiment_name = f"{experiment_type}{formatted_time}"
 
 variable_param = "leverage" #ここで設定した項目は配列にすること(none,leverage,alpha)
-save = False
+save = True
 
 params = {
     'none':[0], #variable_param=noneの際は1回だけ繰り返す
@@ -53,7 +53,7 @@ params = {
     #param--------------------------------------------
     'num_try': 3,
     'max_epochs': 10,
-    'leverage': [2], #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
+    'leverage': [2,4,8,16], #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
     'kernel_size': 4,
 
     #anderson param-----------------------------------
