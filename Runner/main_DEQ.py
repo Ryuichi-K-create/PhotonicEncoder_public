@@ -95,20 +95,20 @@ All_TIMEs_ = []
 for variable in params[variable_param]: #variable:leverage,alpha
     print(f'----------------------Running with {variable_param}: {variable}----------------------')
 #-----------------------------------------------------
-    # Relres_ = []
-    # Unresovable = 0
-    # k = 1000
-    # Show_rel = False
-    # for i in range(k):
-    #     relres = convergence_verifies[params["dataset"]](params,gamma=params['gamma'],data_train=data_train,data_test=data_test,device=device,Show=Show_rel)
-    #     Relres_.append(len(relres))
-    #     if len(relres) > 40:
-    #         Unresovable += 1
-    #     sys.stderr.write(f"\rIteration {i+1}/{k} completed. Current length: {len(relres)}")
-    #     sys.stdout.flush()
-    # time.sleep(1)
-    # print(f"Average number of iterations: {np.mean(Relres_)}")
-    # print(f"Unresolvable cases: {Unresovable}")
+    Relres_ = []
+    Unresovable = 0
+    k = 1000
+    Show_rel = False
+    for i in range(k):
+        relres = convergence_verifies[params["dataset"]](params,gamma=params['gamma'],data_train=data_train,data_test=data_test,device=device,Show=Show_rel)
+        Relres_.append(len(relres))
+        if len(relres) > 40:
+            Unresovable += 1
+        sys.stderr.write(f"\rIteration {i+1}/{k} completed. Current length: {len(relres)}")
+        sys.stdout.flush()
+    time.sleep(1)
+    print(f"Average number of iterations: {np.mean(Relres_)}")
+    print(f"Unresolvable cases: {Unresovable}")
 #-----------------------------------------------------
     All_last_loss = []
     All_loss_test = []
