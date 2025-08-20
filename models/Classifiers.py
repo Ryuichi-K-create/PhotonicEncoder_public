@@ -68,7 +68,7 @@ class MLP_for_7(nn.Module):#7値分類の表データなら使える。
 
     def forward(self, x,b):
         #x = self.bn(x)
-        x = x.reshape(b, -1)
+        # x = x.reshape(b, -1)
         x = self.model(x)
         return x
 

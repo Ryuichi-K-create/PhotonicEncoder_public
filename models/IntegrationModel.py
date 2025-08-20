@@ -153,12 +153,14 @@ class Table10Classifier(nn.Module):#10クラスの表データ用
         }
         self.input_dim = dataset_config[dataset]['input_dim']
         potential_dim = int(self.input_dim//leverage)
+        self.enc_type = enc_type
         self.encoder = encoders[enc_type](self.input_dim,potential_dim,alpha,device)
         self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc,n_patches=None,dropout=dropout).to(device)
 
     def forward(self, x):
         b=x.size(0)
-        x = self.encoder(x)
+        if self.enc_type != 'none':
+            x = self.encoder(x)
         x = self.classifier(x,b)
         return x 
 
