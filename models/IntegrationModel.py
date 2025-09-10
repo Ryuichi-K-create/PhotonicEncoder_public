@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
+import math
 
 #--------------------------------------------------------------------
 def split_into_kernels(image, kernel_size):
@@ -79,6 +80,47 @@ class LIEncoder(nn.Module):
         x = x.T  
         x = torch.matmul(self.B, x).T  
         return x
+    
+#--------------------------------------------------------------------
+def fft2_lowfreq_features(
+    x: torch.Tensor,
+    out_dim: int,
+    per_channel: bool = True,
+    log_scale: bool = True,
+) -> torch.Tensor:
+    """
+    x: (B, C, H, W) 画像テンソル（float）
+    out_dim: 取り出す特徴次元（任意）
+    per_channel=True: 各チャンネルごとに低周波r×rを切り出して連結
+    log_scale=True: |FFT|にlog1pを適用してダイナミックレンジを圧縮
+
+    返り値: (B, out_dim) の特徴ベクトル
+    """
+    B, C, H, W = x.shape
+    # 2D FFT → 振幅（パワーではなく|F|）を使う
+    F = torch.fft.fft2(x)
+    mag = torch.abs(F)
+    if log_scale:
+        mag = torch.log1p(mag)
+
+    # 低周波ブロックを左上(0,0)から切り出す（DCを0,0に置くためfftshiftは使わない）
+    if per_channel:
+        r = max(1, min(int(math.ceil(math.sqrt(max(1, out_dim) / C))), min(H, W)))
+        low = mag[:, :, :r, :r]          # (B, C, r, r)
+        feat = low.reshape(B, -1)        # (B, C*r*r)
+    else:
+        r = max(1, min(int(math.ceil(math.sqrt(max(1, out_dim)))), min(H, W)))
+        low = mag[:, :, :r, :r].reshape(B, -1)  # (B, C*r*r)
+        feat = low
+
+    # 必要数に調整（超過分は切り落とし、足りなければ0パディング）
+    if feat.size(1) >= out_dim:
+        feat = feat[:, :out_dim]
+    else:
+        pad = torch.zeros(B, out_dim - feat.size(1), device=feat.device, dtype=feat.dtype)
+        feat = torch.cat([feat, pad], dim=1)
+    return feat
+
 #--------------------------------------------------------------------
 from .Classifiers import MLP_for_10, CNN_for10, MLP_for_7
 #--------------------------------------------------------------------
@@ -131,6 +173,41 @@ class Image10Classifier(nn.Module):#10クラスの画像用
             x = self.encoder(x) 
         x = self.classifier(x,b)
         return x
+#--------------------------------------------------------------------
+class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
+    def __init__(self, dataset,leverage,
+                 enc_type,alpha,cls_type,num_layer,fc,dropout,device):
+        super(Image10Classifier_FFT, self).__init__()
+        dataset_config = {
+            'mnist':     {'img_size': 28, 'channels': 1},
+            'cifar-10':  {'img_size': 32, 'channels': 3},
+            'fashion-mnist': {'img_size': 28, 'channels': 1},
+            'cinic-10': {'img_size':32, 'channels':3}
+        }
+        if dataset not in dataset_config:
+            raise ValueError(f"Unknown dataset: {dataset}")
+        self.img_size = dataset_config[dataset]['img_size']
+        self.channels = dataset_config[dataset]['channels']
+
+        feat_dim = int((self.channels*self.img_size*self.img_size)/leverage)
+        encoders = {
+            'PM':PMEncoder,
+            'IM':IMEncoder,
+            'MZM':MZMEncoder,
+            'LI':LIEncoder,
+            'none':PMEncoder
+        }
+        classifiers = {
+            'MLP':MLP_for_10,
+            'CNN':CNN_for10
+        }
+
+        potential_dim = feat_dim
+        self.enc_type = enc_type
+        self.encoder = encoders[enc_type](self.channels*self.img_size*self.img_size,feat_dim,alpha,device) 
+        self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc,n_patches=None,dropout=dropout).to(device)
+
+
 #--------------------------------------------------------------------
 
 class Table10Classifier(nn.Module):#10クラスの表データ用
@@ -223,7 +300,7 @@ class DEQ_Image10Classifier(nn.Module):#10クラスの画像用(DEQ)
         return x
 
 
-class DEQ_Table10Classifier(nn.Module):#10クラスの画像用(DEQ)
+class DEQ_Table10Classifier(nn.Module):
     def __init__(self, dataset,kernel_size,leverage,
                  enc_type,alpha,cls_type,num_layer,fc,dropout,num_iter,m,tol,beta,gamma,lam,device):
         super(DEQ_Table10Classifier, self).__init__()
