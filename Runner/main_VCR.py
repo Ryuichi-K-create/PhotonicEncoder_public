@@ -22,19 +22,20 @@ formatted_time = now.strftime("%m%d%H%M")
 formatted_time = int(formatted_time)
 print(f'-----Formatted time: {formatted_time} -----')
 #-----------------------------------------------------------------
-experiment_type = "Normal"
+experiment_type = "fft" # 'normal' or 'fft' or 'deq'
 experiment_name = f"{experiment_type}{formatted_time}"
 variable_param = "none" #ここで設定した項目は配列にすること(none,leverage,alpha)
 save = False
+show = True
 
 params = {
     'none':[0], #variable_param=noneの際は1回だけ繰り返す
     #data---------------------------------------------
-    'dataset': 'covtype', # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
-    'batch_size': 512, #64 MNIST, 100 CIFAR10, 100 CINIC10
+    'dataset': 'mnist', # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
+    'batch_size': 100, #64 MNIST, 100 CIFAR10, 100 CINIC10
 
     #Encoder_Model--------------------------------
-    'enc_type': 'PM', # 'none', 'MZM', 'LI'
+    'enc_type': 'none', # 'none', 'MZM', 'LI'
     'alpha': np.pi/2, 
     #位相変調機の感度[np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16],pi:-π~π
     #class_model--------------------------------------
@@ -49,10 +50,10 @@ params = {
     'lr': 0.001,
 
     #param--------------------------------------------
-    'num_try': 5,
+    'num_try': 1,
     'max_epochs': 10,
-    'leverage': 8, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
-    'kernel_size': 4
+    'leverage': 0, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48](fft特徴量版では設定しない)
+    'kernel_size': 0 #(fft特徴量版では設定しない)
 }
 #save---------------------------------------------
 folder_params = {k: params[k] for k in ['dataset', 'enc_type', 'cls_type']}
@@ -91,7 +92,7 @@ for variable in params[variable_param]: #variable:leverage,alpha
             params_for_train.update({'num_times': num_times,'device': device})
         
         #-----------training-----------
-        loss_train_,loss_test_,pro_time_,Last_loss_test,Test_acc,all_labels,all_preds = train_nomal(**params_for_train,data_train=data_train,data_test=data_test)
+        loss_train_,loss_test_,pro_time_,Last_loss_test,Test_acc,all_labels,all_preds = train_nomal(**params_for_train,data_train=data_train,data_test=data_test,ex_type=experiment_type)
 
         All_loss_test.append(loss_test_)
         All_pro_time.append(sum(pro_time_))
@@ -101,16 +102,17 @@ for variable in params[variable_param]: #variable:leverage,alpha
             datas = [loss_train_,loss_test_,all_labels,all_preds,Test_acc]
             save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='trial',experiment_name=experiment_name)
         print(f"Test Accuracy:{Test_acc:.2f}")
-        # plot_loss_curve(loss_train_,loss_test_)
-        # plot_confusion_matrix(all_labels,all_preds,params["dataset"],Test_acc)
+        if show:
+            plot_loss_curve(loss_train_,loss_test_)
+            plot_confusion_matrix(all_labels,all_preds,params["dataset"],Test_acc)
 
     datas = [All_loss_test,All_test_acc,All_last_loss,All_pro_time]
 
     if save:
         save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='mid',experiment_name=experiment_name)
-
-    # plot_errorbar_losscurve(All_loss_test)
-    # create_table(All_test_acc,All_last_loss,All_pro_time)
+    if show:  
+        plot_errorbar_losscurve(All_loss_test)
+        create_table(All_test_acc,All_last_loss,All_pro_time)
 
     All_last_ACCs_.append(All_test_acc)
     All_last_LOSSs_.append(All_last_loss)
@@ -121,3 +123,4 @@ if variable_param != 'none'and save:
     save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='final',experiment_name=experiment_name) #最終保存
 
 create_result_pdf(variable_param, params,experiment_name=experiment_name)
+

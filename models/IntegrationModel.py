@@ -84,7 +84,7 @@ class LIEncoder(nn.Module):
 #--------------------------------------------------------------------
 def fft2_lowfreq_features(
     x: torch.Tensor,
-    out_dim: int,
+    out_dim: int = 32,
     per_channel: bool = True,
     log_scale: bool = True,
 ) -> torch.Tensor:
@@ -175,7 +175,7 @@ class Image10Classifier(nn.Module):#10クラスの画像用
         return x
 #--------------------------------------------------------------------
 class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
-    def __init__(self, dataset,leverage,
+    def __init__(self, dataset,kernel_size,leverage,
                  enc_type,alpha,cls_type,num_layer,fc,dropout,device):
         super(Image10Classifier_FFT, self).__init__()
         dataset_config = {
@@ -189,7 +189,6 @@ class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
         self.img_size = dataset_config[dataset]['img_size']
         self.channels = dataset_config[dataset]['channels']
 
-        feat_dim = int((self.channels*self.img_size*self.img_size)/leverage)
         encoders = {
             'PM':PMEncoder,
             'IM':IMEncoder,
@@ -201,12 +200,23 @@ class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
             'MLP':MLP_for_10,
             'CNN':CNN_for10
         }
-
+        self.fft_dim = 25
+        feat_dim = 17
         potential_dim = feat_dim
         self.enc_type = enc_type
-        self.encoder = encoders[enc_type](self.channels*self.img_size*self.img_size,feat_dim,alpha,device) 
-        self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc,n_patches=None,dropout=dropout).to(device)
+        self.encoder = encoders[enc_type](self.fft_dim,feat_dim,alpha,device) 
+        self.classifier =  classifiers[cls_type](self.fft_dim,num_layer,fc,n_patches=None,dropout=dropout).to(device)##
 
+    def forward(self, x):
+        x = x.view(x.size(0), self.channels, self.img_size, self.img_size)
+        # print(f"Image10Classifier: x.shape={x.shape}")
+        x = fft2_lowfreq_features(x,out_dim=self.fft_dim , per_channel=False, log_scale=True)
+        b=x.size(0)
+        x = x.view(b, -1)
+        if self.enc_type != 'none':
+            x = self.encoder(x.view(b, -1)) 
+        x = self.classifier(x,b)
+        return x
 
 #--------------------------------------------------------------------
 
