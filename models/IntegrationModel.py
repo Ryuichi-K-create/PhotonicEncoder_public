@@ -82,6 +82,8 @@ class LIEncoder(nn.Module):
         return x
     
 #--------------------------------------------------------------------
+import matplotlib.pyplot as plt
+#--------------------------------------------------------------------
 def fft2_lowfreq_features(
     x: torch.Tensor,
     out_dim: int = 32,
@@ -119,6 +121,27 @@ def fft2_lowfreq_features(
     else:
         pad = torch.zeros(B, out_dim - feat.size(1), device=feat.device, dtype=feat.dtype)
         feat = torch.cat([feat, pad], dim=1)
+    
+    #------------------------------------------------
+    # バッチの最初の画像の特徴ベクトルを取り出す
+    feat0 = feat[0].detach().cpu().numpy()
+
+    # 2Dにreshape（例: out_dim=25 → 5x5）
+    side = int(math.ceil(math.sqrt(feat0.shape[0])))
+    feat2d = feat0.reshape(side, side)
+
+    x0 = x[0,0].detach().cpu().numpy()   # 入力画像 (1ch)
+    plt.subplot(1,2,1)
+    plt.imshow(x0, cmap="gray")
+    plt.title("Original Image")
+
+    plt.subplot(1,2,2)
+    plt.imshow(feat2d, cmap="viridis")
+    plt.title("FFT Low-freq Features")
+    plt.colorbar()
+    plt.show()
+
+    #------------------------------------------------
     return feat
 
 #--------------------------------------------------------------------
@@ -200,7 +223,7 @@ class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
             'MLP':MLP_for_10,
             'CNN':CNN_for10
         }
-        self.fft_dim = 25
+        self.fft_dim = 25 #fft特徴量の次元数
         feat_dim = 17
         potential_dim = feat_dim
         self.enc_type = enc_type

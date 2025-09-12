@@ -14,9 +14,9 @@ else:
 print(f'Using device: {device}')
 
 from dataloader.dataloader import load_MNIST_data,load_CINIC10_data,load_CIFAR10_data,load_Fmnist_data,load_Covtype_data
-from train.training import train_nomal,train_for_DEQ
-from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusion_matrix,plot_histograms,create_table,convergence_verify
-from result_management.data_manager import save_csv,auto_git_push,save_experiment_report,create_result_pdf
+from train.training import train_nomal
+from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusion_matrix,create_table
+from result_management.data_manager import save_csv,save_experiment_report,create_result_pdf
 now = datetime.now()
 formatted_time = now.strftime("%m%d%H%M")
 formatted_time = int(formatted_time)
@@ -26,7 +26,7 @@ experiment_type = "fft" # 'normal' or 'fft' or 'deq'
 experiment_name = f"{experiment_type}{formatted_time}"
 variable_param = "none" #ここで設定した項目は配列にすること(none,leverage,alpha)
 save = False
-show = True
+show = False
 
 params = {
     'none':[0], #variable_param=noneの際は1回だけ繰り返す
@@ -50,7 +50,7 @@ params = {
     'lr': 0.001,
 
     #param--------------------------------------------
-    'num_try': 1,
+    'num_try': 5,
     'max_epochs': 10,
     'leverage': 0, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48](fft特徴量版では設定しない)
     'kernel_size': 0 #(fft特徴量版では設定しない)
@@ -69,7 +69,7 @@ data_loaders = {
 }
 
 data_train,data_test = data_loaders[params["dataset"]]()
-if params["enc_type"] == 'none':
+if params["enc_type"] == 'none':    
     leverage = 1
 results = []
 All_last_LOSSs_ = []
@@ -103,16 +103,16 @@ for variable in params[variable_param]: #variable:leverage,alpha
             save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='trial',experiment_name=experiment_name)
         print(f"Test Accuracy:{Test_acc:.2f}")
         if show:
-            plot_loss_curve(loss_train_,loss_test_)
-            plot_confusion_matrix(all_labels,all_preds,params["dataset"],Test_acc)
+            plot_loss_curve(loss_train_,loss_test_,Save=save,Show=show)
+            plot_confusion_matrix(all_labels,all_preds,params["dataset"],Test_acc,Save=save,Show=show)
 
     datas = [All_loss_test,All_test_acc,All_last_loss,All_pro_time]
 
     if save:
         save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='mid',experiment_name=experiment_name)
     if show:  
-        plot_errorbar_losscurve(All_loss_test)
-        create_table(All_test_acc,All_last_loss,All_pro_time)
+        plot_errorbar_losscurve(All_loss_test,Save=save,Show=show)
+        create_table(All_test_acc,All_last_loss,All_pro_time,Save=save,Show=show)
 
     All_last_ACCs_.append(All_test_acc)
     All_last_LOSSs_.append(All_last_loss)
@@ -122,5 +122,5 @@ if variable_param != 'none'and save:
     datas = [All_last_ACCs_,All_last_LOSSs_,All_TIMEs_]
     save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='final',experiment_name=experiment_name) #最終保存
 
-create_result_pdf(variable_param, params,experiment_name=experiment_name)
-
+if save:
+    create_result_pdf(variable_param, params,experiment_name=experiment_name)

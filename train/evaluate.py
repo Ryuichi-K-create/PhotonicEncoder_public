@@ -312,6 +312,16 @@ def convergence_verify_tabular(params, gamma, data_train, data_test, device, Sho
 
     return relres
 
+def showfft(real, imag):
+    fimg = np.zeros(real.shape, np.complex128)
+    fimg.real = real
+    fimg.imag = imag
+    img = np.abs(fimg)
+    plt.figure()
+    plt.imshow(img)
+    plt.gray()
+    plt.show()
+
 
 #------------------------------------------------------------------------------------------
 def show_images(images,labels,dataset,fixed_indices):
