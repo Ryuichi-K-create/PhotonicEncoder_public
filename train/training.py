@@ -114,15 +114,24 @@ def train_nomal(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
 
 def train_for_DEQ(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
                          data_test,batch_size,device,max_epochs,leverage,
-                         enc_type,alpha,cls_type,num_layer,fc,dropout,kernel_size,num_iter,m,tol,beta,gamma,lam):
+                         enc_type,alpha,cls_type,num_layer,fc,dropout,kernel_size,num_iter,m,tol,beta,gamma,lam,ex_type):
     #---------------------------------------------
-    models = {
-        'mnist':DEQ_Image10Classifier,
-        'cifar-10':DEQ_Image10Classifier,
-        'cinic-10':DEQ_Image10Classifier,
-        'fashion-mnist':DEQ_Image10Classifier,
-        'covtype':DEQ_Table10Classifier
-    }
+    if ex_type != 'deq_fft':
+        models = {
+            'mnist':Image10Classifier,
+            'cifar-10':Image10Classifier,
+            'cinic-10':Image10Classifier,
+            'fashion-mnist':Image10Classifier,
+            'covtype':Table10Classifier
+        }
+    else:
+        models = {
+            'mnist':DEQ_Image10Classifier,
+            'cifar-10':DEQ_Image10Classifier,
+            'cinic-10':DEQ_Image10Classifier,
+            'fashion-mnist':DEQ_Image10Classifier,
+            'covtype':DEQ_Table10Classifier
+        }
     #---------------------------------------------
     loss_funcs = {
         'cross_entropy':nn.CrossEntropyLoss,

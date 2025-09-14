@@ -23,16 +23,17 @@ formatted_time = now.strftime("%m%d%H%M")
 formatted_time = int(formatted_time)
 print(f'-----Formatted time: {formatted_time} -----')
 #-----------------------------------------------------------------
-experiment_type = "DEQ"
+experiment_type = "deq_fft" # 'normal' or 'fft' or 'deq' or 'deq_fft'
 experiment_name = f"{experiment_type}{formatted_time}"
 
 variable_param = "none" #ここで設定した項目は配列にすること(none,leverage,alpha)
 save = False
+show = True
 
 params = {
     'none':[0], #variable_param=noneの際は1回だけ繰り返す
     #data---------------------------------------------
-    'dataset': 'cinic-10', # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
+    'dataset': 'fashion-mnist', # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
     'batch_size': 100, #64 MNIST, 100 CIFAR10, 100 CINIC10, 512 COVTYPE
 
     #Encoder_Model--------------------------------
@@ -40,7 +41,7 @@ params = {
     'alpha': np.pi/2, 
     #位相変調機の感度[np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16],pi:-π~π
     #class_model--------------------------------------
-    'cls_type': 'CNN', # 'MLP' or 'CNN'
+    'cls_type': 'MLP', # 'MLP' or 'CNN'
     'num_layer': 2,
     'fc': 'relu',
     'dropout': 0.0,
@@ -51,10 +52,10 @@ params = {
     'lr': 0.001,
 
     #param--------------------------------------------
-    'num_try': 3,
+    'num_try': 5,
     'max_epochs': 10,
-    'leverage': 16, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
-    'kernel_size': 4,
+    'leverage': 1, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
+    'kernel_size': 1, #(fft特徴量版では設定しない)
 
     #anderson param-----------------------------------
     'm': 5,
@@ -125,7 +126,7 @@ for variable in params[variable_param]: #variable:leverage,alpha
             params_for_train.update({'num_times': num_times,'device': device})
         
         #-----------training-----------
-        loss_train_,loss_test_,pro_time_,Last_loss_test,Test_acc,all_labels,all_preds = train_for_DEQ(**params_for_train,data_train=data_train,data_test=data_test)
+        loss_train_,loss_test_,pro_time_,Last_loss_test,Test_acc,all_labels,all_preds = train_for_DEQ(**params_for_train,data_train=data_train,data_test=data_test,ex_type=experiment_type)
 
         All_loss_test.append(loss_test_)
         All_pro_time.append(sum(pro_time_))

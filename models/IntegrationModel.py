@@ -123,23 +123,23 @@ def fft2_lowfreq_features(
         feat = torch.cat([feat, pad], dim=1)
     
     #------------------------------------------------
-    # バッチの最初の画像の特徴ベクトルを取り出す
-    feat0 = feat[0].detach().cpu().numpy()
+    # # バッチの最初の画像の特徴ベクトルを取り出す
+    # feat0 = feat[0].detach().cpu().numpy()
 
-    # 2Dにreshape（例: out_dim=25 → 5x5）
-    side = int(math.ceil(math.sqrt(feat0.shape[0])))
-    feat2d = feat0.reshape(side, side)
+    # # 2Dにreshape（例: out_dim=25 → 5x5）
+    # side = int(math.ceil(math.sqrt(feat0.shape[0])))
+    # feat2d = feat0.reshape(side, side)
 
-    x0 = x[0,0].detach().cpu().numpy()   # 入力画像 (1ch)
-    plt.subplot(1,2,1)
-    plt.imshow(x0, cmap="gray")
-    plt.title("Original Image")
+    # x0 = x[0,0].detach().cpu().numpy()   # 入力画像 (1ch)
+    # plt.subplot(1,2,1)
+    # plt.imshow(x0, cmap="gray")
+    # plt.title("Original Image")
 
-    plt.subplot(1,2,2)
-    plt.imshow(feat2d, cmap="viridis")
-    plt.title("FFT Low-freq Features")
-    plt.colorbar()
-    plt.show()
+    # plt.subplot(1,2,2)
+    # plt.imshow(feat2d, cmap="viridis")
+    # plt.title("FFT Low-freq Features")
+    # plt.colorbar()
+    # plt.show()
 
     #------------------------------------------------
     return feat
@@ -225,11 +225,13 @@ class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
         }
         self.fft_dim = 25 #fft特徴量の次元数
         feat_dim = 17
-        potential_dim = feat_dim
         self.enc_type = enc_type
+        self.bn = nn.BatchNorm1d(self.fft_dim)
         self.encoder = encoders[enc_type](self.fft_dim,feat_dim,alpha,device) 
-        self.classifier =  classifiers[cls_type](self.fft_dim,num_layer,fc,n_patches=None,dropout=dropout).to(device)##
-
+        if enc_type == 'none':
+            self.classifier =  classifiers[cls_type](self.fft_dim,num_layer,fc,n_patches=None,dropout=dropout).to(device)
+        else:
+            self.classifier =  classifiers[cls_type](feat_dim,num_layer,fc,n_patches=None,dropout=dropout).to(device)
     def forward(self, x):
         x = x.view(x.size(0), self.channels, self.img_size, self.img_size)
         # print(f"Image10Classifier: x.shape={x.shape}")
@@ -237,6 +239,7 @@ class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
         b=x.size(0)
         x = x.view(b, -1)
         if self.enc_type != 'none':
+            x = self.bn(x)
             x = self.encoder(x.view(b, -1)) 
         x = self.classifier(x,b)
         return x
@@ -332,6 +335,59 @@ class DEQ_Image10Classifier(nn.Module):#10クラスの画像用(DEQ)
         x = self.classifier(x,b)
         return x
 
+class DEQ_Image10Classifier_FFT(nn.Module):#10クラスの画像用(DEQ)
+    def __init__(self, dataset,kernel_size,leverage,
+                 enc_type,alpha,cls_type,num_layer,fc,dropout,num_iter,m,tol,beta,gamma,lam,device):
+        super(DEQ_Image10Classifier_FFT, self).__init__() 
+        self.device = device
+        dataset_config = {
+            'mnist':     {'img_size': 28, 'channels': 1},
+            'cifar-10':  {'img_size': 32, 'channels': 3},
+            'cinic-10': {'img_size':32, 'channels':3},
+            'fashion-mnist': {'img_size': 28, 'channels': 1},
+            'cifar-100': {'img_size': 32, 'channels': 3},
+        }
+        self.img_size = dataset_config[dataset]['img_size']
+        self.channels = dataset_config[dataset]['channels']
+
+        self.kernel_size = kernel_size
+        kernel_in = self.channels*kernel_size**2
+        classifiers = {
+            'MLP':MLP_for_10,
+            'CNN':CNN_for10
+        }
+        self.fft_dim = 25 #fft特徴量の次元数
+        feat_dim = 17
+        self.num_patches = (self.img_size//kernel_size)*(self.img_size//kernel_size) 
+        kernel_in_total = kernel_in * self.num_patches
+        self.z_dim = int(kernel_in_total/leverage)
+        potential_dim = self.z_dim
+        self.num_iter = num_iter
+        #--------------------------------------------
+        cell = Cell(kernel_in_total, self.z_dim,enc_type,alpha,gamma,device).to(device)
+        self.deq_main = DEQFixedPoint(cell,anderson,self.z_dim,
+                                      m = m,
+                                      num_iter = num_iter,
+                                      tol = tol,
+                                      beta = beta,
+                                      lam = lam
+                                      )
+        # print(f"DEQ_Image10Classifier: z_dim={self.z_dim}, num_patches={self.num_patches}, potential_dim={potential_dim}")
+
+        self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc,self.num_patches,dropout).to(device)
+        
+    def forward(self, x):
+        b=x.size(0)
+        x = x.view(b, self.channels, self.img_size, self.img_size)
+
+        x = x.reshape(b,-1)
+
+        x = self.deq_main(x)
+        x = x.reshape(b * self.num_patches,-1)
+        x = self.classifier(x,b)
+        return x
+
+        
 
 class DEQ_Table10Classifier(nn.Module):
     def __init__(self, dataset,kernel_size,leverage,
