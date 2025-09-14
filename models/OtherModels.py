@@ -2,8 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils import spectral_norm
-
-from .IntegrationModel import PMEncoder, IMEncoder, MZMEncoder, LIEncoder 
+import matplotlib.pyplot as plt
 
 class SNLinearRelax(nn.Linear):
     def __init__(
@@ -22,6 +21,9 @@ class SNLinearRelax(nn.Linear):
 class Cell(nn.Module):
     def __init__(self, x_dim, z_dim,enc_type,alpha,gamma,device):
         super().__init__()
+        # 循環インポートを避けるため、ここでインポート
+        from .IntegrationModel import PMEncoder, IMEncoder, MZMEncoder, LIEncoder
+        
         encoders = {
             'PM':PMEncoder,
             'IM':IMEncoder,
@@ -112,3 +114,202 @@ class DEQFixedPoint(nn.Module):
 
         z.register_hook(backward_hook)
         return z
+
+#--------------------------------------------------------
+class FFTLowFreqSelector(torch.nn.Module):
+    """
+    MNIST/FashionMNIST 等の2D画像を FFT し、fftshift 後の中心(低周波)から
+    半径の近い順に out_dim 個の周波数成分 (振幅) を抜き出して特徴ベクトルにするクラス。
+
+    - 入力: x (B, C, H, W)  [float]
+    - 出力: (B, out_dim)    [float]
+    """
+    def __init__(self, out_dim: int = 25, log_magnitude: bool = True, eps: float = 1e-12):
+        super().__init__()
+        self.out_dim = int(out_dim)
+        self.log_magnitude = bool(log_magnitude)
+        self.eps = float(eps)
+        # 画像サイズごとに選択インデックスをキャッシュ
+        self._cached_idx = {}   # key=(H,W) -> dict{"flat": LongTensor(K,), "ij": LongTensor(K,2)}
+
+    @torch.no_grad()
+    def _prepare_indices(self, H: int, W: int, device: torch.device):
+        """中心からの半径昇順（同半径は角度昇順）で K=out_dim 個の画素インデックスを決めてキャッシュ。"""
+        if (H, W) in self._cached_idx:
+            return
+        # 座標グリッド（行=Y=i, 列=X=j）
+        ys = torch.arange(H, device=device).float()
+        xs = torch.arange(W, device=device).float()
+        yy, xx = torch.meshgrid(ys, xs, indexing="ij")
+
+        cy = (H - 1) / 2.0
+        cx = (W - 1) / 2.0
+        dy = yy - cy
+        dx = xx - cx
+        r2 = dy * dy + dx * dx
+        ang = torch.atan2(dy, dx)  # -pi..pi
+
+        # (H*W,) にして複合キーでソート
+        r2_f = r2.flatten()
+        ang_f = ang.flatten()
+        # 距離→角度のタプルで安定ソートするため、まず距離で昇順、距離同値は角度で昇順
+        # 距離を主キー、角度を副キーにするために、距離に極小の角度正規化を足す手もあるが、
+        # ここでは2段階ソートを使う。
+        # 1) 角度でソートインデックス
+        _, idx_ang = torch.sort(ang_f)
+        # 2) 上の結果を使って距離で安定ソート
+        r2_sorted, idx_r2 = torch.sort(r2_f[idx_ang], stable=True)
+        idx_all = idx_ang[idx_r2]
+
+        K = min(self.out_dim, H * W)
+        idx_k = idx_all[:K]  # (K,)
+
+        # 2次元インデックス (i,j)
+        iy = (idx_k // W).long()
+        ix = (idx_k %  W).long()
+        ij = torch.stack([iy, ix], dim=1).long()
+
+        self._cached_idx[(H, W)] = {"flat": idx_k.long(), "ij": ij.long()}
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        x: (B, C, H, W) または (B, H, W)/(B, H*W)
+        return: (B, out_dim)
+        """
+        B, C, H, W = x.shape
+        if self.out_dim > H * W:
+            raise ValueError(f"out_dim={self.out_dim} exceeds image size H*W={H*W}")
+
+        self._prepare_indices(H, W, x.device)
+        idx_flat = self._cached_idx[(H, W)]["flat"]  # (K,)
+        # FFT -> shift -> magnitude
+        X = torch.fft.fft2(x, dim=(-2, -1))
+        X = torch.fft.fftshift(X, dim=(-2, -1))
+        mag = X.abs()
+        if self.log_magnitude:
+            mag = torch.log1p(mag + self.eps)
+
+        # (B, C, H*W) にして、同一 idx_flat を切り出し (B, C, K) -> チャンネル平均 -> (B, K)
+        mag_flat = mag.reshape(B, C, H * W)
+        feats_bcK = torch.index_select(mag_flat, dim=2, index=idx_flat)  # (B, C, K)
+        feats = feats_bcK.mean(dim=1)  # (B, K)
+        return feats
+
+    @torch.no_grad()
+    def get_selected_coords(self, H: int, W: int, device=None) -> torch.Tensor:
+        """選ばれる (i,j) インデックス（K,2）を返す。"""
+        dev = device if device is not None else torch.device("cpu")
+        self._prepare_indices(H, W, dev)
+        return self._cached_idx[(H, W)]["ij"].clone()
+
+    @torch.no_grad()
+    def reconstruct_from_lowfreq(self, x: torch.Tensor, sample_index: int = 0) -> torch.Tensor:
+        """
+        選択した低周波成分のみを使用して逆フーリエ変換で画像を復元する。
+        
+        Args:
+            x: 入力画像テンソル (B, C, H, W)
+            sample_index: 復元するサンプルのインデックス
+            
+        Returns:
+            復元された画像 (H, W)
+        """
+        B, C, H, W = x.shape
+        if not (0 <= sample_index < B):
+            raise IndexError(f"sample_index {sample_index} out of range (0..{B-1})")
+            
+        self._prepare_indices(H, W, x.device)
+        idx_flat = self._cached_idx[(H, W)]["flat"]  # (K,)
+        ij = self._cached_idx[(H, W)]["ij"]  # (K, 2)
+        
+        # 1サンプルのFFT
+        x_single = x[sample_index:sample_index+1]  # (1, C, H, W)
+        X = torch.fft.fft2(x_single, dim=(-2, -1))
+        X_shifted = torch.fft.fftshift(X, dim=(-2, -1))
+        
+        # 低周波成分のみを保持するマスク作成
+        X_lowfreq = torch.zeros_like(X_shifted)
+        
+        # 選択された低周波成分のみをコピー
+        for c in range(C):
+            for k in range(len(idx_flat)):
+                i, j = ij[k]
+                X_lowfreq[0, c, i, j] = X_shifted[0, c, i, j]
+        
+        # 逆フーリエ変換
+        X_lowfreq_ishifted = torch.fft.ifftshift(X_lowfreq, dim=(-2, -1))
+        reconstructed = torch.fft.ifft2(X_lowfreq_ishifted, dim=(-2, -1)).real
+        
+        # チャンネル平均して (H, W) にする
+        reconstructed = reconstructed.mean(dim=1).squeeze(0)  # (H, W)
+        
+        return reconstructed
+
+    @torch.no_grad()
+    def plot_example(self, x: torch.Tensor, sample_index: int = 0, annotate: bool = True, savepath: str = None):
+        """
+        バッチ x から sample_index 番目を可視化。
+        ・元画像
+        ・FFT(shift後)の log 振幅スペクトル
+        ・どの out_dim 成分を抜いたか（スペクトル上にマーカー）
+        ・低周波成分からの復元画像
+        """
+        B, C, H, W = x.shape
+        if not (0 <= sample_index < B):
+            raise IndexError(f"sample_index {sample_index} out of range (0..{B-1})")
+        
+        # 1枚取り出し（表示は1ch目）
+        img_tensor = x[sample_index, 0].detach().cpu().float()  # (H, W)
+        # 正規化を戻す: Normalize((0.5,), (0.5,)) の逆変換
+        img = img_tensor * 0.5 + 0.5  # [-1,1] -> [0,1] に戻す
+        img = torch.clamp(img, 0, 1)  # 範囲をクリップ
+        img = img.numpy()
+
+        # FFT スペクトル（log1p 振幅）
+        X = torch.fft.fft2(x[sample_index:sample_index+1], dim=(-2, -1))
+        X = torch.fft.fftshift(X, dim=(-2, -1))
+        mag = X.abs().mean(dim=1)  # (1, H, W) チャンネル平均
+        spec = torch.log1p(mag + self.eps)[0].detach().cpu().float().numpy()
+
+        # 低周波成分からの復元画像
+        reconstructed = self.reconstruct_from_lowfreq(x, sample_index)
+        # 正規化を戻す
+        reconstructed_denorm = reconstructed * 0.5 + 0.5
+        reconstructed_denorm = torch.clamp(reconstructed_denorm, 0, 1)
+        reconstructed_img = reconstructed_denorm.detach().cpu().numpy()
+
+        # マーカー座標
+        ij = self.get_selected_coords(H, W, device=x.device).cpu().numpy()  # (K,2)
+        iy, ix = ij[:, 0], ij[:, 1]
+
+        # 図を描く（4つのサブプロット）
+        fig = plt.figure(figsize=(16, 4))
+        ax1 = fig.add_subplot(1, 4, 1)
+        ax2 = fig.add_subplot(1, 4, 2)
+        ax3 = fig.add_subplot(1, 4, 3)
+        ax4 = fig.add_subplot(1, 4, 4)
+
+        ax1.imshow(img, cmap="gray", interpolation="nearest", vmin=0, vmax=1)
+        ax1.set_title("Original")
+        ax1.axis("off")
+
+        ax2.imshow(spec, cmap="gray", interpolation="nearest")
+        ax2.set_title("FFT |X| (log)")
+        ax2.axis("off")
+
+        ax3.imshow(spec, cmap="gray", interpolation="nearest")
+        ax3.scatter(ix, iy, marker="o", s=30, c='red', alpha=0.7)
+        if annotate:
+            for k, (yy, xx) in enumerate(zip(iy, ix)):
+                ax3.text(xx + 0.5, yy + 0.5, str(k+1), fontsize=7, color='blue')
+        ax3.set_title(f"Selected {self.out_dim} low-freq bins")
+        ax3.axis("off")
+
+        ax4.imshow(reconstructed_img, cmap="gray", interpolation="nearest", vmin=0, vmax=1)
+        ax4.set_title("Reconstructed from low-freq")
+        ax4.axis("off")
+
+        plt.tight_layout()
+        if savepath:
+            plt.savefig(savepath, bbox_inches="tight", dpi=150)
+        plt.show()
