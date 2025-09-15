@@ -35,7 +35,7 @@ params = {
     'batch_size': 100, #64 MNIST, 100 CIFAR10, 100 CINIC10
 
     #Encoder_Model--------------------------------
-    'enc_type': 'none', # 'none', 'MZM', 'LI'
+    'enc_type': 'PM', # 'none', 'MZM', 'LI'
     'alpha': np.pi/2, 
     #位相変調機の感度[np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16],pi:-π~π
     #class_model--------------------------------------

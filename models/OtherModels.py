@@ -69,13 +69,11 @@ class Cell_fft(nn.Module):
         #積和演算電子回路----------------------
         if z.shape[0] != 1:  # バッチサイズが1でない場合のみBatchNormを適用
             z = self.bn(z)
-        z = self.fc1(z)
-        # z = self.act(z)
+        z = self.fc1(z) #17→7
+        z = self.act(z)
         #------------------------------------
         zx = torch.cat([x,z],dim=1)
-        # print(f"Cell_fft: zx.shape={zx.shape}")
-        z = self.enc1(zx)
-        # print(f"Cell_fft: output z.shape={z.shape}")
+        z = self.enc1(zx)#光回路:32→17で固定
         return z
         
 
@@ -84,7 +82,16 @@ def anderson(fc, x0, z_dim, m, num_iter, tol, beta, lam=1e-4):
     X = torch.zeros(bsz, m, z_dim, dtype=x0.dtype, device=x0.device)
     F = torch.zeros_like(X)
     X[:, 0], F[:, 0] = x0, fc(x0)
+    
+    # num_iter=1の場合は初期値をそのまま返す
+    if num_iter <= 1:
+        return X[:, 0], []
+        
     X[:, 1], F[:, 1] = F[:, 0], fc(F[:, 0])
+    
+    # num_iter=2の場合は2回目の結果を返す
+    if num_iter <= 2:
+        return X[:, 1], []
 
     H_mat = torch.zeros(bsz, m + 1, m + 1, dtype=x0.dtype, device=x0.device)
     H_mat[:, 0, 1:] = H_mat[:, 1:, 0] = 1
@@ -92,6 +99,7 @@ def anderson(fc, x0, z_dim, m, num_iter, tol, beta, lam=1e-4):
     y[:, 0] = 1
 
     res = []  # 収束誤差の履歴
+    k = 1  # kを初期化
     for k in range(2, num_iter):
         n = min(k, m)
         G = F[:, :n] - X[:, :n]

@@ -312,11 +312,11 @@ class DEQ_Image10Classifier_FFT(nn.Module):#10クラスの画像用(DEQ)
         x = self.fft.forward(x)
         b = x.size(0)
         x = x.view(b,-1)
+        x = self.bn(x)
         x = self.deq_main(x)
         x = self.classifier(x,b)
         return x
 
-        
 
 class DEQ_Table10Classifier(nn.Module):
     def __init__(self, dataset,kernel_size,leverage,

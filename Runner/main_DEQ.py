@@ -16,7 +16,7 @@ print(f'Using device: {device}')
 
 from dataloader.dataloader import load_MNIST_data,load_CINIC10_data,load_CIFAR10_data,load_Fmnist_data,load_Covtype_data
 from train.training import train_for_DEQ
-from train.evaluate import convergence_verify,convergence_verify_fft,convergence_verify_tabular
+from train.evaluate import convergence_verify,convergence_verify_fft,convergence_verify_tabular,plot_loss_curve,plot_errorbar_losscurve,plot_confusion_matrix,create_table
 from result_management.data_manager import save_csv,save_experiment_report,create_result_pdf
 now = datetime.now()
 formatted_time = now.strftime("%m%d%H%M")
@@ -49,20 +49,20 @@ params = {
     #learning-----------------------------------------
     'loss_func': 'cross_entropy',
     'optimizer': 'adam',
-    'lr': 0.001,
+    'lr': 0.001,  # 元の学習率に戻す
 
     #param--------------------------------------------
     'num_try': 1,
-    'max_epochs': 10,
+    'max_epochs': 10,  # 元に戻す
     'leverage': 8, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
     'kernel_size': 4, #(fft特徴量版では設定しない)
 
     #anderson param-----------------------------------
-    'm': 5,
-    'lam': 1e-5, 
-    'num_iter': 50,
-    'tol': 1e-4,  #早期終了条件
-    'beta': 1.0,
+    'm': 5,  
+    'lam': 1e-4,  
+    'num_iter': 50,  
+    'tol': 1e-4,  
+    'beta': 1.0,  
     'gamma' : 0 #SNLinearRelaxのgamma値(使わない)
 }
 #save---------------------------------------------
@@ -107,8 +107,8 @@ for variable in params[variable_param]: #variable:leverage,alpha
 #-----------------------------------------------------
     Relres_ = []
     Unresovable = 0
-    k = 5
-    Show_rel = True
+    k = 100
+    Show_rel = False
     for i in range(k):
         relres = convergence_verifies[params["dataset"]](params,gamma=params['gamma'],data_train=data_train,data_test=data_test,device=device,Show=Show_rel)
         Relres_.append(len(relres))
@@ -145,8 +145,9 @@ for variable in params[variable_param]: #variable:leverage,alpha
             datas = [loss_train_,loss_test_,all_labels,all_preds,Test_acc]
             save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='trial',experiment_name=experiment_name)
         print(f'Test Accuracy: {Test_acc}')
-        # plot_loss_curve(loss_train_,loss_test_)
-        # plot_confusion_matrix(all_labels,all_preds,params["dataset"],Test_acc)
+        if show:
+            plot_loss_curve(loss_train_,loss_test_,Show=show)
+            plot_confusion_matrix(all_labels,all_preds,params["dataset"],Test_acc,Show=show)
 
     if save:
         datas = [All_loss_test,All_test_acc,All_last_loss,All_pro_time]
@@ -155,8 +156,9 @@ for variable in params[variable_param]: #variable:leverage,alpha
         datas = [Relres_,np.mean(Relres_),Unresovable]
         save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='relres',experiment_name=experiment_name)
     print(f"Test Accuracy:{Test_acc:.2f}")
-    # plot_errorbar_losscurve(All_loss_test)
-    # create_table(All_test_acc,All_last_loss,All_pro_time)
+    if show:  
+        plot_errorbar_losscurve(All_loss_test,Show=show)
+        create_table(All_test_acc,All_last_loss,All_pro_time,Show=show)
 
     All_last_ACCs_.append(All_test_acc)
     All_last_LOSSs_.append(All_last_loss)

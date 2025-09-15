@@ -12,7 +12,6 @@ class MLP_for_10(nn.Module):#10値分類なら使える。
             # print(f"MLP_for_10: potential_dim={potential_dim}, n_patches={n_patches}")
             self.bn = nn.BatchNorm1d(potential_dim//n_patches)
         else:
-
             self.bn = nn.BatchNorm1d(potential_dim)
         func ={
             'relu':nn.ReLU(),
