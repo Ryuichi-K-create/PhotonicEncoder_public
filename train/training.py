@@ -10,7 +10,7 @@ import time
 import csv
 
 from dataloader.dataloader import get_new_dataloader 
-from models.IntegrationModel import Image10Classifier,DEQ_Image10Classifier,Table10Classifier,DEQ_Table10Classifier,Image10Classifier_FFT
+from models.IntegrationModel import Image10Classifier,DEQ_Image10Classifier,Table10Classifier,DEQ_Table10Classifier,Image10Classifier_FFT,DEQ_Image10Classifier_FFT
 
 def train_nomal(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
                          data_test,batch_size,device,max_epochs,leverage,
@@ -116,13 +116,12 @@ def train_for_DEQ(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
                          data_test,batch_size,device,max_epochs,leverage,
                          enc_type,alpha,cls_type,num_layer,fc,dropout,kernel_size,num_iter,m,tol,beta,gamma,lam,ex_type):
     #---------------------------------------------
-    if ex_type != 'deq_fft':
+    if ex_type == 'deq_fft':
         models = {
-            'mnist':Image10Classifier,
-            'cifar-10':Image10Classifier,
-            'cinic-10':Image10Classifier,
-            'fashion-mnist':Image10Classifier,
-            'covtype':Table10Classifier
+            'mnist':DEQ_Image10Classifier_FFT,
+            'cifar-10':Image10Classifier_FFT,
+            'cinic-10':Image10Classifier_FFT,
+            'fashion-mnist':DEQ_Image10Classifier_FFT
         }
     else:
         models = {

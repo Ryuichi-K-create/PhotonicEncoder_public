@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import numpy as np
 import math
 
-from .OtherModels import Cell,DEQFixedPoint,anderson,FFTLowFreqSelector
+from .OtherModels import Cell,Cell_fft,DEQFixedPoint,anderson,FFTLowFreqSelector
 #--------------------------------------------------------------------
 def split_into_kernels(image, kernel_size):
     b, c, h, w = image.shape
@@ -262,8 +262,6 @@ class DEQ_Image10Classifier(nn.Module):#10クラスの画像用(DEQ)
         b=x.size(0)
         x = x.view(b, self.channels, self.img_size, self.img_size)
         x = split_into_kernels(x, self.kernel_size)#(b, p, c, k, k)
-        # x = x.reshape(b * self.num_patches,
-        #self.channels * self.kernel_size**2)(anderson軽量化)
 
         x = x.reshape(b,-1)
 
@@ -286,41 +284,35 @@ class DEQ_Image10Classifier_FFT(nn.Module):#10クラスの画像用(DEQ)
         }
         self.img_size = dataset_config[dataset]['img_size']
         self.channels = dataset_config[dataset]['channels']
-
-        self.kernel_size = kernel_size
-        kernel_in = self.channels*kernel_size**2
         classifiers = {
             'MLP':MLP_for_10,
             'CNN':CNN_for10
         }
         self.fft_dim = 25 #fft特徴量の次元数
         feat_dim = 17
-        self.num_patches = (self.img_size//kernel_size)*(self.img_size//kernel_size) 
-        kernel_in_total = kernel_in * self.num_patches
-        self.z_dim = int(kernel_in_total/leverage)
-        potential_dim = self.z_dim
+        circuit_dim = 7 #積和演算回路の出力次元数
         self.num_iter = num_iter
+        self.fft = FFTLowFreqSelector(out_dim=self.fft_dim, log_magnitude=True)
+        self.bn = nn.BatchNorm1d(self.fft_dim)
         #--------------------------------------------
-        cell = Cell(kernel_in_total, self.z_dim,enc_type,alpha,gamma,device).to(device)
-        self.deq_main = DEQFixedPoint(cell,anderson,self.z_dim,
+        cell = Cell_fft(x_dim=self.fft_dim,circuit_dim=circuit_dim, z_dim=feat_dim,enc_type=enc_type,alpha=alpha,device=device).to(device)
+        self.deq_main = DEQFixedPoint(cell,anderson,
+                                      z_dim=feat_dim,
                                       m = m,
                                       num_iter = num_iter,
                                       tol = tol,
                                       beta = beta,
                                       lam = lam
                                       )
-        # print(f"DEQ_Image10Classifier: z_dim={self.z_dim}, num_patches={self.num_patches}, potential_dim={potential_dim}")
 
-        self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc,self.num_patches,dropout).to(device)
+        self.classifier =  classifiers[cls_type](feat_dim,num_layer,fc,n_patches=None,dropout=dropout).to(device)
         
     def forward(self, x):
-        b=x.size(0)
-        x = x.view(b, self.channels, self.img_size, self.img_size)
-
-        x = x.reshape(b,-1)
-
+        x = x.view(x.size(0), self.channels, self.img_size, self.img_size)
+        x = self.fft.forward(x)
+        b = x.size(0)
+        x = x.view(b,-1)
         x = self.deq_main(x)
-        x = x.reshape(b * self.num_patches,-1)
         x = self.classifier(x,b)
         return x
 

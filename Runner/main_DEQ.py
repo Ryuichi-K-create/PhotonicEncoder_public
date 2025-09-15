@@ -52,10 +52,10 @@ params = {
     'lr': 0.001,
 
     #param--------------------------------------------
-    'num_try': 5,
+    'num_try': 1,
     'max_epochs': 10,
-    'leverage': 1, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
-    'kernel_size': 1, #(fft特徴量版では設定しない)
+    'leverage': 8, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
+    'kernel_size': 4, #(fft特徴量版では設定しない)
 
     #anderson param-----------------------------------
     'm': 5,
@@ -98,10 +98,10 @@ for variable in params[variable_param]: #variable:leverage,alpha
 #-----------------------------------------------------
     Relres_ = []
     Unresovable = 0
-    k = 1000
-    Show_rel = False
+    k = 5
+    Show_rel = True
     for i in range(k):
-        relres = convergence_verifies[params["dataset"]](params,gamma=params['gamma'],data_train=data_train,data_test=data_test,device=device,Show=Show_rel)
+        relres = convergence_verifies[params["dataset"]](params,gamma=params['gamma'],data_train=data_train,data_test=data_test,device=device,Show=Show_rel,ex_type=experiment_type)
         Relres_.append(len(relres))
         if len(relres) > 40:
             Unresovable += 1

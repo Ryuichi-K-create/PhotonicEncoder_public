@@ -48,6 +48,36 @@ class Cell(nn.Module):
         z = self.act(z)
         return z
 
+
+class Cell_fft(nn.Module):
+    def __init__(self, x_dim,circuit_dim, z_dim,enc_type,alpha,device):
+        super().__init__()
+        from .IntegrationModel import PMEncoder, IMEncoder, MZMEncoder, LIEncoder
+        
+        encoders = {
+            'PM':PMEncoder,
+            'IM':IMEncoder,
+            'MZM':MZMEncoder,
+            'LI':LIEncoder
+        }
+        self.enc1 = encoders[enc_type](x_dim+circuit_dim,z_dim,alpha,device)
+        self.fc1 = nn.Linear(z_dim, circuit_dim)
+        self.bn = nn.BatchNorm1d(z_dim)
+        self.act = nn.ReLU()
+    def forward(self,z , x):
+        # print(f"Cell_fft: x.shape={x.shape}, z.shape={z.shape}")
+        #積和演算電子回路----------------------
+        z = self.bn(z)
+        z = self.fc1(z)
+        # z = self.act(z)
+        #------------------------------------
+        zx = torch.cat([x,z],dim=1)
+        # print(f"Cell_fft: zx.shape={zx.shape}")
+        z = self.enc1(zx)
+        # print(f"Cell_fft: output z.shape={z.shape}")
+        return z
+        
+
 def anderson(fc, x0, z_dim, m, num_iter, tol, beta, lam=1e-4):
     bsz,_ = x0.shape
     X = torch.zeros(bsz, m, z_dim, dtype=x0.dtype, device=x0.device)

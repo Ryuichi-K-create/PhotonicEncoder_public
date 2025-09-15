@@ -11,7 +11,7 @@ import random
 import tempfile
 from dataloader.dataloader import get_new_dataloader 
 from models.IntegrationModel import split_into_kernels, PMEncoder,IMEncoder,MZMEncoder,LIEncoder,DEQ_Image10Classifier
-from models.OtherModels import Cell,anderson
+from models.OtherModels import Cell,Cell_fft,anderson,FFTLowFreqSelector
 colors = [
     "#1f77b4",  # 青
     "#ff7f0e",  # オレンジ
@@ -174,7 +174,7 @@ def create_table(All_test_acc,All_last_loss,All_pro_time,Save=False,Show=False):
     if Save:
         return df
 #------------------------------------------------------------------------------------------
-def convergence_verify(params,gamma,data_train,data_test,device,Show=False):
+def convergence_verify(params,gamma,data_train,data_test,device,Show=False,ex_type=None):
     dataset = params['dataset']
     num_iter = params['num_iter']
     m = params['m']
@@ -202,13 +202,8 @@ def convergence_verify(params,gamma,data_train,data_test,device,Show=False):
     z_dim = int(kernel_in/leverage_value)
     num_patches = int(img_size/kernel_size)**2
     cell = Cell(kernel_in, z_dim,enc_type,alpha,gamma,device).to(device)
-    #----------------------------------------------
-    # with torch.no_grad():
-    #     W = cell.fc1.weight            # (out_dim, in_dim)
-    #     sigma_max = torch.linalg.svdvals(W).max()  # 最大特異値
-    #     print(f"Spectrum norm ||W||_2 = {sigma_max.item():.4f}")
-    #----------------------------------------------
-    # 可視化用に 1 バッチだけ入力
+
+
     batch_size = 64
     _,test_dataloader = get_new_dataloader(data_train,data_test,batch_size)
     for x_batch, _ in test_dataloader:
@@ -247,6 +242,7 @@ def convergence_verify(params,gamma,data_train,data_test,device,Show=False):
         plt.tight_layout()
         plt.show()
     return relres
+
 
 def convergence_verify_tabular(params, gamma, data_train, data_test, device, Show=False):
     # ---- params ----
@@ -311,16 +307,6 @@ def convergence_verify_tabular(params, gamma, data_train, data_test, device, Sho
         plt.show()
 
     return relres
-
-def showfft(real, imag):
-    fimg = np.zeros(real.shape, np.complex128)
-    fimg.real = real
-    fimg.imag = imag
-    img = np.abs(fimg)
-    plt.figure()
-    plt.imshow(img)
-    plt.gray()
-    plt.show()
 
 
 #------------------------------------------------------------------------------------------
