@@ -174,7 +174,7 @@ def create_table(All_test_acc,All_last_loss,All_pro_time,Save=False,Show=False):
     if Save:
         return df
 #------------------------------------------------------------------------------------------
-def convergence_verify(params,gamma,data_train,data_test,device,Show=False,ex_type=None):
+def convergence_verify(params,gamma,data_train,data_test,device,Show=False):
     dataset = params['dataset']
     num_iter = params['num_iter']
     m = params['m']
@@ -241,6 +241,87 @@ def convergence_verify(params,gamma,data_train,data_test,device,Show=False,ex_ty
         plt.grid(True, which="both")
         plt.tight_layout()
         plt.show()
+    return relres
+
+def convergence_verify_fft(params,gamma,data_train, data_test, device, Show=False):
+    # パラメータ抽出
+    dataset = params['dataset']
+    num_iter = params['num_iter']
+    m = params['m']
+    tol = params['tol']
+    beta = params['beta']
+    enc_type = params['enc_type']
+    alpha = params['alpha']
+    
+    dataset_config = {
+        'mnist':     {'img_size': 28, 'channels': 1},
+        'cifar-10':  {'img_size': 32, 'channels': 3},
+        'cinic-10':  {'img_size': 32, 'channels': 3},
+        'fashion-mnist': {'img_size': 28, 'channels': 1},
+        'cifar-100': {'img_size': 32, 'channels': 3},
+    }
+    
+    img_size = dataset_config[dataset]['img_size']
+    channels = dataset_config[dataset]['channels']
+    
+    # FFTベースのパラメータ設定（IntegrationModel.pyのDEQ_Image10Classifier_FFTと同じ）
+    fft_dim = 25        # FFT低周波成分数
+    z_dim = 17          # 隠れ状態の次元
+    circuit_dim = 7     # 積和演算電子回路の出力次元数
+    
+    # FFT特徴抽出器とCell_fftの初期化
+    from models.OtherModels import Cell_fft, anderson, FFTLowFreqSelector
+    fft_extractor = FFTLowFreqSelector(out_dim=fft_dim, log_magnitude=True)
+    cell = Cell_fft(x_dim=fft_dim, circuit_dim=circuit_dim, z_dim=z_dim, 
+                   enc_type=enc_type, alpha=alpha, device=device).to(device)
+    
+    # テストデータから1サンプル取得
+    batch_size = 64
+    _, test_dataloader = get_new_dataloader(data_train, data_test, batch_size)
+    for x_batch, _ in test_dataloader:
+        idx = random.randint(0, batch_size-1)
+        x_sample = x_batch[idx].to(device)
+        break
+    
+    # 収束検証の実行
+    relres = []
+    with torch.no_grad():
+        B = 1
+        # 画像形状に変換
+        x_sample = x_sample.view(B, channels, img_size, img_size)
+        
+        # FFTで低周波成分を抽出
+        x_fft_features = fft_extractor.forward(x_sample)  # (B, fft_dim)
+        
+        def fc(z):
+            # z: (B, circuit_dim), x_fft_features: (B, fft_dim)
+            return cell(z, x_fft_features)
+        
+        # 初期値設定
+        z0 = torch.zeros(B, z_dim, device=device)
+        
+        # Anderson反復による固定点計算
+        z_final, relres = anderson(
+            fc,
+            z0,
+            z_dim=z_dim,
+            m=m,
+            num_iter=num_iter,
+            tol=tol,
+            beta=beta
+        )
+    
+    # 結果の可視化
+    if Show:
+        plt.figure(figsize=(6, 4))
+        plt.semilogy(range(1, len(relres)+1), relres, marker="o")
+        plt.xlabel("iteration")
+        plt.ylabel("relative residual")
+        plt.title("FFT-based DEQ convergence (relative residual)")
+        plt.grid(True, which="both")
+        plt.tight_layout()
+        plt.show()
+    
     return relres
 
 

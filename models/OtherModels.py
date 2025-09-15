@@ -67,7 +67,8 @@ class Cell_fft(nn.Module):
     def forward(self,z , x):
         # print(f"Cell_fft: x.shape={x.shape}, z.shape={z.shape}")
         #積和演算電子回路----------------------
-        z = self.bn(z)
+        if z.shape[0] != 1:  # バッチサイズが1でない場合のみBatchNormを適用
+            z = self.bn(z)
         z = self.fc1(z)
         # z = self.act(z)
         #------------------------------------

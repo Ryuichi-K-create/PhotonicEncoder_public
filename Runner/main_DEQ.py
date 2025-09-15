@@ -16,7 +16,7 @@ print(f'Using device: {device}')
 
 from dataloader.dataloader import load_MNIST_data,load_CINIC10_data,load_CIFAR10_data,load_Fmnist_data,load_Covtype_data
 from train.training import train_for_DEQ
-from train.evaluate import convergence_verify,convergence_verify_tabular
+from train.evaluate import convergence_verify,convergence_verify_fft,convergence_verify_tabular
 from result_management.data_manager import save_csv,save_experiment_report,create_result_pdf
 now = datetime.now()
 formatted_time = now.strftime("%m%d%H%M")
@@ -84,6 +84,15 @@ convergence_verifies = {
     'mnist': convergence_verify,
     'fashion-mnist': convergence_verify
 }
+if "fft" in experiment_type:
+    convergence_verifies = {
+        'cifar-10': convergence_verify_fft,
+        'cinic-10': convergence_verify_fft,
+        'mnist': convergence_verify_fft,
+        'fashion-mnist': convergence_verify_fft
+    }
+
+
 data_train,data_test = data_loaders[params["dataset"]]()
 
 if params["enc_type"] == 'none':
@@ -101,7 +110,7 @@ for variable in params[variable_param]: #variable:leverage,alpha
     k = 5
     Show_rel = True
     for i in range(k):
-        relres = convergence_verifies[params["dataset"]](params,gamma=params['gamma'],data_train=data_train,data_test=data_test,device=device,Show=Show_rel,ex_type=experiment_type)
+        relres = convergence_verifies[params["dataset"]](params,gamma=params['gamma'],data_train=data_train,data_test=data_test,device=device,Show=Show_rel)
         Relres_.append(len(relres))
         if len(relres) > 40:
             Unresovable += 1
