@@ -20,12 +20,13 @@ class MLP_for_10(nn.Module):#10値分類なら使える。
             'sigmoid':nn.Sigmoid()
         }
         ac_func = func[fc]
-        for i in range(num_layer-1):
-            next_dim = max(10,current_dim//2)
-            layers.append(nn.Linear(current_dim,next_dim))
-            layers.append(ac_func)
-            layers.append(nn.Dropout(dropout))
-            current_dim = next_dim
+        if num_layer > 1:
+            for i in range(num_layer-1):
+                next_dim = max(10,current_dim//2)
+                layers.append(nn.Linear(current_dim,next_dim))
+                layers.append(ac_func)
+                layers.append(nn.Dropout(dropout))
+                current_dim = next_dim
         layers.append(nn.Linear(current_dim,10))
         self.model = nn.Sequential(*layers)
 

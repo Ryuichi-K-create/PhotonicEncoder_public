@@ -165,7 +165,7 @@ class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
         feat_dim = 17
         self.enc_type = enc_type
         self.fft = FFTLowFreqSelector(out_dim=self.fft_dim, log_magnitude=True)
-        self.bn = nn.BatchNorm1d(self.fft_dim)
+        self.bn = nn.BatchNorm1d(self.fft_dim).to(device)
         self.encoder = encoders[enc_type](self.fft_dim,feat_dim,alpha,device) 
         if enc_type == 'none':
             self.classifier =  classifiers[cls_type](self.fft_dim,num_layer,fc,n_patches=None,dropout=dropout).to(device)
