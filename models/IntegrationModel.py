@@ -166,6 +166,7 @@ class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
         self.enc_type = enc_type
         self.fft = FFTLowFreqSelector(out_dim=self.fft_dim, log_magnitude=True)
         self.bn = nn.BatchNorm1d(self.fft_dim).to(device)
+        self.ln = nn.LayerNorm(self.fft_dim).to(device)
         self.encoder = encoders[enc_type](self.fft_dim,feat_dim,alpha,device) 
         if enc_type == 'none':
             self.classifier =  classifiers[cls_type](self.fft_dim,num_layer,fc,n_patches=None,dropout=dropout).to(device)
@@ -178,7 +179,8 @@ class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
         b=x.size(0)
         x = x.view(b, -1)
         if self.enc_type != 'none':
-            x = self.bn(x)
+            # x = self.bn(x)
+            x = self.ln(x)
             x = self.encoder(x.view(b, -1)) 
         x = self.classifier(x,b)
         return x
@@ -294,6 +296,7 @@ class DEQ_Image10Classifier_FFT(nn.Module):#10クラスの画像用(DEQ)
         self.num_iter = num_iter
         self.fft = FFTLowFreqSelector(out_dim=self.fft_dim, log_magnitude=True)
         self.bn = nn.BatchNorm1d(self.fft_dim)
+        self.ln = nn.LayerNorm(self.fft_dim)
         #--------------------------------------------
         cell = Cell_fft(x_dim=self.fft_dim,circuit_dim=circuit_dim, z_dim=feat_dim,enc_type=enc_type,alpha=alpha,device=device).to(device)
         self.deq_main = DEQFixedPoint(cell,anderson,
@@ -312,7 +315,8 @@ class DEQ_Image10Classifier_FFT(nn.Module):#10クラスの画像用(DEQ)
         x = self.fft.forward(x)
         b = x.size(0)
         x = x.view(b,-1)
-        x = self.bn(x)
+        # x = self.bn(x)
+        x = self.ln(x)
         x = self.deq_main(x)
         x = self.classifier(x,b)
         return x
