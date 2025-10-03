@@ -50,6 +50,45 @@ def load_Fmnist_data():
     fmnist_test = datasets.FashionMNIST(root=root,download=True,train=False,transform=transform)
     return(fmnist_train,fmnist_test)
 #--------------------------------------------------------
+def load_Fmnist_data_train(split_train=50000, split_test=10000):
+    transform = transforms.Compose([
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomRotation(10),  # ±10度回転
+        transforms.ToTensor(),
+        transforms.Normalize((0.5,), (0.5,)),  # 推奨値
+        lambda x: x.view(-1)
+    ])
+
+    root = os.path.join(os.path.dirname(__file__), 'samples', 'Fmnist_data')
+
+    # train 全部(60000)を取ってくる
+    fmnist_full = datasets.FashionMNIST(root=root, download=True, train=True, transform=transform)
+
+    # 50000 / 10000 に分割
+    train_data, val_data = torch.utils.data.random_split(
+        fmnist_full, [split_train, split_test], generator=torch.Generator().manual_seed(42)
+    )
+
+    return (train_data, val_data)
+#--------------------------------------------------------
+def load_compressed_Fmnist_data():
+    file_path = os.path.join(os.path.dirname(__file__), 'samples',  'fashion-mnist_fft_features_outputdata.csv')
+    data = pd.read_csv(file_path)
+
+    X = data.loc[:, 'A':'Q']
+    y = data['S']
+
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, train_size=50000,test_size=10000, shuffle=True,random_state=42)
+
+    train_dataset = torch.utils.data.TensorDataset(torch.tensor(X_train, dtype=torch.float32),
+                                                   torch.tensor(y_train.values, dtype=torch.long))
+    test_dataset = torch.utils.data.TensorDataset(torch.tensor(X_test, dtype=torch.float32), 
+                                                  torch.tensor(y_test.values, dtype=torch.long))
+    return (train_dataset, test_dataset)
+
+#--------------------------------------------------------
 def load_CIFAR10_data():
     transform = transforms.Compose([
         transforms.RandomHorizontalFlip(),
