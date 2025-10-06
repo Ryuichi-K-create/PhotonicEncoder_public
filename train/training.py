@@ -24,7 +24,7 @@ def train_nomal(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
         'fashion-mnist':Image10Classifier,
         'covtype':Table10Classifier
     }
-    if ex_type == 'fft':
+    if ex_type == 'fft'or ex_type == 'fft_phyz':
         models.update({
             'mnist':Image10Classifier_FFT,
             'cifar-10':Image10Classifier_FFT,
@@ -53,7 +53,7 @@ def train_nomal(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
     train_dataloader,test_dataloader = get_new_dataloader(data_train,
                                                             data_test,batch_size)
     model = models[dataset](dataset,kernel_size,leverage,
-                            enc_type,alpha,cls_type,num_layer,fc,dropout,device)
+                            enc_type,alpha,cls_type,num_layer,fc,ex_type,dropout,device)
     
     if dataset == 'covtype':
         counts = [211840, 283301, 35754, 2747, 9493, 17367, 20510] #covtypeのy_originの各ラベル数。

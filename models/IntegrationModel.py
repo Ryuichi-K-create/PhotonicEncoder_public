@@ -88,7 +88,7 @@ from .Classifiers import MLP_for_10, CNN_for10, MLP_for_7
 
 class Image10Classifier(nn.Module):#10クラスの画像用
     def __init__(self, dataset,kernel_size,leverage,
-                 enc_type,alpha,cls_type,num_layer,fc,dropout,device):
+                 enc_type,alpha,cls_type,num_layer,fc,ex_type,dropout,device):
         super(Image10Classifier, self).__init__()
         dataset_config = {
             'mnist':     {'img_size': 28, 'channels': 1},
@@ -137,7 +137,7 @@ class Image10Classifier(nn.Module):#10クラスの画像用
 #--------------------------------------------------------------------
 class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
     def __init__(self, dataset,kernel_size,leverage,
-                 enc_type,alpha,cls_type,num_layer,fc,dropout,device):
+                 enc_type,alpha,cls_type,num_layer,fc,ex_type,dropout,device):
         super(Image10Classifier_FFT, self).__init__()
         dataset_config = {
             'mnist':     {'img_size': 28, 'channels': 1},
@@ -164,18 +164,20 @@ class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
         self.fft_dim = 25 #fft特徴量の次元数
         feat_dim = 17
         self.enc_type = enc_type
+        self.ex_type = ex_type
         self.fft = FFTLowFreqSelector(out_dim=self.fft_dim, log_magnitude=True)
         self.bn = nn.BatchNorm1d(self.fft_dim).to(device)
         self.ln = nn.LayerNorm(self.fft_dim).to(device)
         self.encoder = encoders[enc_type](self.fft_dim,feat_dim,alpha,device) 
         if enc_type == 'none':
-            self.classifier =  classifiers[cls_type](self.fft_dim,num_layer,fc,n_patches=None,dropout=dropout).to(device)
+            self.classifier =  classifiers[cls_type](feat_dim,num_layer,fc,n_patches=None,dropout=dropout).to(device)
         else:
             self.classifier =  classifiers[cls_type](feat_dim,num_layer,fc,n_patches=None,dropout=dropout).to(device)
     def forward(self, x):
-        x = x.view(x.size(0), self.channels, self.img_size, self.img_size)
-        # print(f"Image10Classifier: x.shape={x.shape}")
-        x = self.fft.forward(x)
+        if self.ex_type == 'fft':
+            x = x.view(x.size(0), self.channels, self.img_size, self.img_size)
+            # print(f"Image10Classifier: x.shape={x.shape}")
+            x = self.fft.forward(x)
         b=x.size(0)
         x = x.view(b, -1)
         if self.enc_type != 'none':
@@ -189,7 +191,7 @@ class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
 
 class Table10Classifier(nn.Module):#10クラスの表データ用
     def __init__(self, dataset,kernel_size,leverage,
-                 enc_type,alpha,cls_type,num_layer,fc,dropout,device):
+                 enc_type,alpha,cls_type,num_layer,fc,ex_type,dropout,device):
         super(Table10Classifier, self).__init__()
         dataset_config = {
             'covtype' : {'input_dim': 54}
@@ -221,7 +223,7 @@ class Table10Classifier(nn.Module):#10クラスの表データ用
 
 class DEQ_Image10Classifier(nn.Module):#10クラスの画像用(DEQ)
     def __init__(self, dataset,kernel_size,leverage,
-                 enc_type,alpha,cls_type,num_layer,fc,dropout,num_iter,m,tol,beta,gamma,lam,device):
+                 enc_type,alpha,cls_type,num_layer,fc,ex_type,dropout,num_iter,m,tol,beta,gamma,lam,device):
         super(DEQ_Image10Classifier, self).__init__() #DEQ_Image10Classifier, self
         self.device = device
         dataset_config = {
@@ -274,7 +276,7 @@ class DEQ_Image10Classifier(nn.Module):#10クラスの画像用(DEQ)
 
 class DEQ_Image10Classifier_FFT(nn.Module):#10クラスの画像用(DEQ)
     def __init__(self, dataset,kernel_size,leverage,
-                 enc_type,alpha,cls_type,num_layer,fc,dropout,num_iter,m,tol,beta,gamma,lam,device):
+                 enc_type,alpha,cls_type,num_layer,fc,ex_type,dropout,num_iter,m,tol,beta,gamma,lam,device):
         super(DEQ_Image10Classifier_FFT, self).__init__() 
         self.device = device
         dataset_config = {
@@ -324,7 +326,7 @@ class DEQ_Image10Classifier_FFT(nn.Module):#10クラスの画像用(DEQ)
 
 class DEQ_Table10Classifier(nn.Module):
     def __init__(self, dataset,kernel_size,leverage,
-                 enc_type,alpha,cls_type,num_layer,fc,dropout,num_iter,m,tol,beta,gamma,lam,device):
+                 enc_type,alpha,cls_type,num_layer,fc,ex_type,dropout,num_iter,m,tol,beta,gamma,lam,device):
         super(DEQ_Table10Classifier, self).__init__()
         self.device = device
         dataset_config = {

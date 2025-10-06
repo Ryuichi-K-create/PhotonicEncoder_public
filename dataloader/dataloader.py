@@ -72,11 +72,10 @@ def load_Fmnist_data_train(split_train=50000, split_test=10000):
     return (train_data, val_data)
 #--------------------------------------------------------
 def load_compressed_Fmnist_data():
-    file_path = os.path.join(os.path.dirname(__file__), 'samples',  'fashion-mnist_fft_features_outputdata.csv')
-    data = pd.read_csv(file_path)
-
-    X = data.loc[:, 'A':'Q']
-    y = data['S']
+    file_path = os.path.join(os.path.dirname(__file__), 'samples',  'fashion_mnist_fft_features_outputdata.csv')
+    data = pd.read_csv(file_path, header=None)
+    X = data.iloc[:, 0:17]
+    y = data.iloc[:, 18]  # 正しいラベル列は18列目
 
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
