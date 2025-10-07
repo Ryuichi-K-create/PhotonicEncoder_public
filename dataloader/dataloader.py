@@ -38,8 +38,8 @@ def load_MNIST_data():
 #--------------------------------------------------------
 def load_Fmnist_data():
     transform = transforms.Compose([
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomRotation(10),  # ±10度回転
+        # transforms.RandomHorizontalFlip(),
+        # transforms.RandomRotation(10),  # ±10度回転
         transforms.ToTensor(),
         transforms.Normalize((0.5,), (0.5,)),  # 推奨値
         lambda x: x.view(-1)
@@ -71,20 +71,56 @@ def load_Fmnist_data_train(split_train=50000, split_test=10000):
 
     return (train_data, val_data)
 #--------------------------------------------------------
+def load_csv_Fmnist_data():
+    file_path = os.path.join(os.path.dirname(__file__), 'samples',  'fashion_mnist_fft_features.csv')
+    data = pd.read_csv(file_path, header=None)
+    X = data.iloc[:, 0:32].to_numpy()
+    y = data.iloc[:, 33].to_numpy()  # 正しいラベル列は33列目
+
+    # scaler = StandardScaler()
+    # X_scaled = scaler.fit_transform(X)標準化しない
+    X = data.iloc[:, 0:32].to_numpy()    # DataFrame -> numpy array に変換
+    y = data.iloc[:, 33].to_numpy()      # Series -> numpy array に変換
+
+    # 標準化しない場合でも numpy 配列にしてから分割する
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, train_size=50000, test_size=10000, shuffle=True, random_state=42
+    )
+
+    # numpy -> Torch tensor
+    train_dataset = torch.utils.data.TensorDataset(
+        torch.from_numpy(X_train.astype(np.float32)),
+        torch.from_numpy(y_train.astype(np.int64))
+    )
+    test_dataset = torch.utils.data.TensorDataset(
+        torch.from_numpy(X_test.astype(np.float32)),
+        torch.from_numpy(y_test.astype(np.int64))
+    )
+    return (train_dataset, test_dataset)
+#--------------------------------------------------------
 def load_compressed_Fmnist_data():
     file_path = os.path.join(os.path.dirname(__file__), 'samples',  'fashion_mnist_fft_features_outputdata.csv')
     data = pd.read_csv(file_path, header=None)
-    X = data.iloc[:, 0:17]
-    y = data.iloc[:, 18]  # 正しいラベル列は18列目
+    X = data.iloc[:, 0:17].to_numpy()
+    y = data.iloc[:, 18].to_numpy()  # 正しいラベル列は18列目
 
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
-    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, train_size=50000,test_size=10000, shuffle=True,random_state=42)
+    # scaler = StandardScaler()
+    # X_scaled = scaler.fit_transform(X)標準化しない
 
-    train_dataset = torch.utils.data.TensorDataset(torch.tensor(X_train, dtype=torch.float32),
-                                                   torch.tensor(y_train.values, dtype=torch.long))
-    test_dataset = torch.utils.data.TensorDataset(torch.tensor(X_test, dtype=torch.float32), 
-                                                  torch.tensor(y_test.values, dtype=torch.long))
+    # 標準化しない場合でも numpy 配列にしてから分割する
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, train_size=50000, test_size=10000, shuffle=True, random_state=42
+    )
+
+    # numpy -> Torch tensor
+    train_dataset = torch.utils.data.TensorDataset(
+        torch.from_numpy(X_train.astype(np.float32)),
+        torch.from_numpy(y_train.astype(np.int64))
+    )
+    test_dataset = torch.utils.data.TensorDataset(
+        torch.from_numpy(X_test.astype(np.float32)),
+        torch.from_numpy(y_test.astype(np.int64))
+    )
     return (train_dataset, test_dataset)
 
 #--------------------------------------------------------

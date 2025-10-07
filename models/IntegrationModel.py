@@ -161,19 +161,18 @@ class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
             'MLP':MLP_for_10,
             'CNN':CNN_for10
         }
-        self.fft_dim = 25 #fft特徴量の次元数
+        self.fft_dim = 32 #fft特徴量の次元数
         feat_dim = 17
         self.enc_type = enc_type
         self.ex_type = ex_type
         self.fft = FFTLowFreqSelector(out_dim=self.fft_dim, log_magnitude=True)
         self.bn = nn.BatchNorm1d(self.fft_dim).to(device)
-        self.ln = nn.LayerNorm(self.fft_dim).to(device)
+        self.ln = nn.LayerNorm(self.fft_dim, elementwise_affine=False).to(device)
         self.encoder = encoders[enc_type](self.fft_dim,feat_dim,alpha,device) 
-        if enc_type == 'none':
-            self.classifier =  classifiers[cls_type](feat_dim,num_layer,fc,n_patches=None,dropout=dropout).to(device)
-        else:
-            self.classifier =  classifiers[cls_type](feat_dim,num_layer,fc,n_patches=None,dropout=dropout).to(device)
+        
+        self.classifier =  classifiers[cls_type](feat_dim,num_layer,fc,n_patches=None,dropout=dropout).to(device)
     def forward(self, x):
+        # print("Image10Classifier_FFT: x.shape=",x.shape)
         if self.ex_type == 'fft':
             x = x.view(x.size(0), self.channels, self.img_size, self.img_size)
             # print(f"Image10Classifier: x.shape={x.shape}")
@@ -184,6 +183,7 @@ class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
             # x = self.bn(x)
             x = self.ln(x)
             x = self.encoder(x.view(b, -1)) 
+            # print("After Encoder: x.shape=",x.shape)
         x = self.classifier(x,b)
         return x
 

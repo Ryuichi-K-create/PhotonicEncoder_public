@@ -24,7 +24,8 @@ def train_nomal(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
         'fashion-mnist':Image10Classifier,
         'covtype':Table10Classifier
     }
-    if ex_type == 'fft'or ex_type == 'fft_phyz':
+    if 'fft' in ex_type:
+    # ex_type == 'fft'or ex_type == 'fft_phyz' or ex_type == 'fft_sim':
         models.update({
             'mnist':Image10Classifier_FFT,
             'cifar-10':Image10Classifier_FFT,
