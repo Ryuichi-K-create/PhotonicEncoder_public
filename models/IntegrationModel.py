@@ -35,7 +35,8 @@ class PMEncoder(nn.Module):
         x = torch.matmul(self.B, x).T 
         x = torch.abs(x)**2 
         return x
-    
+
+
 class IMEncoder(nn.Module):
     def __init__(self,input_dim,output_dim,alpha,device='cpu'):
         super(IMEncoder,self).__init__()
@@ -88,7 +89,7 @@ from .Classifiers import MLP_for_10, CNN_for10, MLP_for_7
 
 class Image10Classifier(nn.Module):#10クラスの画像用
     def __init__(self, dataset,kernel_size,leverage,
-                 enc_type,alpha,cls_type,num_layer,fc,ex_type,dropout,device):
+                 enc_type,alpha,cls_type,num_layer,fc,ex_type,dropout,fft_params,device):
         super(Image10Classifier, self).__init__()
         dataset_config = {
             'mnist':     {'img_size': 28, 'channels': 1},
@@ -137,7 +138,7 @@ class Image10Classifier(nn.Module):#10クラスの画像用
 #--------------------------------------------------------------------
 class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
     def __init__(self, dataset,kernel_size,leverage,
-                 enc_type,alpha,cls_type,num_layer,fc,ex_type,dropout,device):
+                 enc_type,alpha,cls_type,num_layer,fc,ex_type,dropout,fft_params,device):
         super(Image10Classifier_FFT, self).__init__()
         dataset_config = {
             'mnist':     {'img_size': 28, 'channels': 1},
@@ -149,7 +150,7 @@ class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
             raise ValueError(f"Unknown dataset: {dataset}")
         self.img_size = dataset_config[dataset]['img_size']
         self.channels = dataset_config[dataset]['channels']
-
+        self.device = device
         encoders = {
             'PM':PMEncoder,
             'IM':IMEncoder,
@@ -161,16 +162,43 @@ class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
             'MLP':MLP_for_10,
             'CNN':CNN_for10
         }
-        self.fft_dim = 32 #fft特徴量の次元数
-        feat_dim = 17
+        self.fft_dim = fft_params['fft_dim'] #fft特徴量の次元数
+        feat_dim = fft_params['enc_out'] #encoder出力の次元数
+        self.compressed_dim = fft_params['compressed_dim'] #圧縮後の次元数
         self.enc_type = enc_type
         self.ex_type = ex_type
         self.fft = FFTLowFreqSelector(out_dim=self.fft_dim, log_magnitude=True)
         self.bn = nn.BatchNorm1d(self.fft_dim).to(device)
         self.ln = nn.LayerNorm(self.fft_dim, elementwise_affine=False).to(device)
         self.encoder = encoders[enc_type](self.fft_dim,feat_dim,alpha,device) 
-        
-        self.classifier =  classifiers[cls_type](feat_dim,num_layer,fc,n_patches=None,dropout=dropout).to(device)
+
+        self._selected_cols = None  # ランダムに選んだ列のインデックスを保存するための変数
+
+        self.classifier =  classifiers[cls_type](self.compressed_dim,num_layer,fc,n_patches=None,dropout=dropout).to(device)
+
+    def random_subarray(self, arr, m: int):
+        """
+        2D tensor/ndarray arr (batch, K) から列をランダムに m 個選んで (batch, m) を返す（torch.Tensor を返す）。
+        - 入力が numpy.ndarray の場合は torch.Tensor に変換する。
+        """
+        # numpy を受け取ったら tensor に変換
+        if isinstance(arr, np.ndarray):
+            arr = torch.from_numpy(arr)
+        if not torch.is_tensor(arr):
+            arr = torch.tensor(arr)
+        if arr.dim() != 2:
+            raise ValueError(f"arr must be 2D (batch, features), got dim={arr.dim()}")
+        batch, K = arr.shape
+        if m > K:
+            raise ValueError(f"m ({m}) must be smaller than number of features ({K})")
+        if m == K:
+            return arr  # 全列選択ならそのまま返す
+        if self._selected_cols is None or self._selected_cols.numel() != m or self._selected_cols.max().item() >= K:
+            cols = torch.randperm(K, device=self.device)[:m]
+            cols, _ = torch.sort(cols)  # 元の列順を保つ
+            self._selected_cols = cols.to(self.device).clone().detach()
+        return arr[:, self._selected_cols]
+    
     def forward(self, x):
         # print("Image10Classifier_FFT: x.shape=",x.shape)
         if self.ex_type == 'fft':
@@ -181,9 +209,11 @@ class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
         x = x.view(b, -1)
         if self.enc_type != 'none':
             # x = self.bn(x)
-            x = self.ln(x)
+            # x = self.ln(x)
             x = self.encoder(x.view(b, -1)) 
-            # print("After Encoder: x.shape=",x.shape)
+        # print("After Encoder: x.shape=",x.shape)
+        x = self.random_subarray(x, self.compressed_dim)
+        # print("After Subarray: x.shape=",x.shape)
         x = self.classifier(x,b)
         return x
 
@@ -191,7 +221,7 @@ class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
 
 class Table10Classifier(nn.Module):#10クラスの表データ用
     def __init__(self, dataset,kernel_size,leverage,
-                 enc_type,alpha,cls_type,num_layer,fc,ex_type,dropout,device):
+                 enc_type,alpha,cls_type,num_layer,fc,ex_type,dropout,fft_params,device):
         super(Table10Classifier, self).__init__()
         dataset_config = {
             'covtype' : {'input_dim': 54}

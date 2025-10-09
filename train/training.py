@@ -14,7 +14,7 @@ from models.IntegrationModel import Image10Classifier,DEQ_Image10Classifier,Tabl
 
 def train_nomal(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
                          data_test,batch_size,device,max_epochs,leverage,
-                         enc_type,alpha,cls_type,num_layer,fc,dropout,kernel_size,ex_type
+                         enc_type,alpha,cls_type,num_layer,fc,dropout,kernel_size,fft_dim,enc_out,compressed_dim,ex_type
                          ):
     #---------------------------------------------
     models = {
@@ -51,11 +51,15 @@ def train_nomal(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
     loss_train_ = []
     loss_test_ = []
     pro_time_ = []
-    train_dataloader,test_dataloader = get_new_dataloader(data_train,
-                                                            data_test,batch_size)
-    model = models[dataset](dataset,kernel_size,leverage,
-                            enc_type,alpha,cls_type,num_layer,fc,ex_type,dropout,device)
-    
+
+    fft_prarams = {
+        'fft_dim': fft_dim,
+        'enc_out': enc_out,
+        'compressed_dim': compressed_dim
+    }
+    train_dataloader,test_dataloader = get_new_dataloader(data_train,data_test,batch_size)
+    model = models[dataset](dataset,kernel_size,leverage,enc_type,alpha,cls_type,num_layer,fc,ex_type,dropout,fft_prarams,device)
+
     if dataset == 'covtype':
         counts = [211840, 283301, 35754, 2747, 9493, 17367, 20510] #covtypeのy_originの各ラベル数。
         class_w = torch.tensor(1.0 / np.sqrt(counts), 
