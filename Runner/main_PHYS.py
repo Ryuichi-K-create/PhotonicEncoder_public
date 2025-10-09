@@ -24,7 +24,7 @@ print(f'-----Formatted time: {formatted_time} -----')
 #-----------------------------------------------------------------
 experiment_type = "fft_sim" # 'fft_phyz' or 'fft_sim'
 experiment_name = f"{experiment_type}{formatted_time}"
-variable_param = "compressed_dim" #ここで設定した項目は配列にすること(none,leverage,alpha)
+variable_param = "none" #ここで設定した項目は配列にすること(none,leverage,alpha)
 save = True
 show = False
 
@@ -57,7 +57,7 @@ params = {
     #fft----------------------------------------------
     'fft_dim': 32, # FFT特徴量の次元数
     'enc_out': 17, # FFT出力の次元数
-    'compressed_dim': list(range(17, 0, -1)) # 圧縮後の次元数
+    'compressed_dim': 17 # 圧縮後の次元数
 }
 #save---------------------------------------------
 folder_params = {k: params[k] for k in ['dataset', 'enc_type', 'cls_type']}

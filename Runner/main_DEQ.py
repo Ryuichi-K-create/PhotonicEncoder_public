@@ -27,8 +27,8 @@ experiment_type = "deq_fft" # 'normal' or 'fft' or 'deq' or 'deq_fft'
 experiment_name = f"{experiment_type}{formatted_time}"
 
 variable_param = "none" #ここで設定した項目は配列にすること(none,leverage,alpha)
-save = False
-show = True
+save = True
+show = False
 
 params = {
     'none':[0], #variable_param=noneの際は1回だけ繰り返す
@@ -38,7 +38,7 @@ params = {
 
     #Encoder_Model--------------------------------
     'enc_type': 'PM', # 'none', 'MZM', 'LI'
-    'alpha': np.pi/2, 
+    'alpha': np.pi/4, 
     #位相変調機の感度[np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16],pi:-π~π
     #class_model--------------------------------------
     'cls_type': 'MLP', # 'MLP' or 'CNN'
@@ -52,7 +52,7 @@ params = {
     'lr': 0.001,  # 元の学習率に戻す
 
     #param--------------------------------------------
-    'num_try': 1,
+    'num_try': 5,
     'max_epochs': 10,  # 元に戻す
     'leverage': 8, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
     'kernel_size': 4, #(fft特徴量版では設定しない)

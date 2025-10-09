@@ -328,7 +328,7 @@ class DEQ_Image10Classifier_FFT(nn.Module):#10クラスの画像用(DEQ)
         self.num_iter = num_iter
         self.fft = FFTLowFreqSelector(out_dim=self.fft_dim, log_magnitude=True)
         self.bn = nn.BatchNorm1d(self.fft_dim)
-        self.ln = nn.LayerNorm(self.fft_dim)
+        self.ln = nn.LayerNorm(self.fft_dim, elementwise_affine=False)
         #--------------------------------------------
         cell = Cell_fft(x_dim=self.fft_dim,circuit_dim=circuit_dim, z_dim=feat_dim,enc_type=enc_type,alpha=alpha,device=device).to(device)
         self.deq_main = DEQFixedPoint(cell,anderson,
