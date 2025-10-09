@@ -483,6 +483,8 @@ def final_graph_maker(file_pathes,variable_param,variable_values,memory_lis,labe
     x_label = variable_param.capitalize()
     if variable_param == 'leverage':
         x_label = 'Compression Ratio'
+    elif variable_param == 'compressed_dim':
+        x_label = 'Encoder Output'
 
     ax1.set_xlabel(x_label, fontsize=15)
     ax1.set_xticks(memory_lis)
