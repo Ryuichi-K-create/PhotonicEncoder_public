@@ -30,12 +30,13 @@ class PMEncoder(nn.Module):
         self.alpha.requires_grad = False
 
     def forward(self, x):
-        x = torch.exp(1j * self.alpha * x) 
+        # print("alpha:", self.alpha)
+        # print("x before encoder:", x)
+        x = torch.exp(1j * self.alpha * x)
         x = x.T  
         x = torch.matmul(self.B, x).T 
         x = torch.abs(x)**2 
         return x
-
 
 class IMEncoder(nn.Module):
     def __init__(self,input_dim,output_dim,alpha,device='cpu'):
@@ -210,6 +211,13 @@ class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
         if self.enc_type != 'none':
             # x = self.bn(x)
             # x = self.ln(x)
+            #--------------------------------------------
+            eps = 1e-8
+            xmin = x.min(dim=1, keepdim=True)[0]
+            xmax = x.max(dim=1, keepdim=True)[0]
+            x = (x - xmin) / (xmax - xmin + eps)
+            #--------------------------------------------
+            # print("x after normalization:", x)
             x = self.encoder(x.view(b, -1)) 
         # print("After Encoder: x.shape=",x.shape)
         x = self.random_subarray(x, self.compressed_dim)

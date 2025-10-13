@@ -25,7 +25,7 @@ print(f'-----Formatted time: {formatted_time} -----')
 experiment_type = "fft_sim" # 'fft_phyz' or 'fft_sim'
 experiment_name = f"{experiment_type}{formatted_time}"
 variable_param = "none" #ここで設定した項目は配列にすること(none,leverage,alpha)
-save = True
+save = False
 show = False
 
 params = {
@@ -36,7 +36,7 @@ params = {
 
     #Encoder_Model--------------------------------
     'enc_type': 'PM', # 'none', 'MZM', 'LI'
-    'alpha': np.pi/4, 
+    'alpha': np.pi/2, 
     #位相変調機の感度[np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16],pi:-π~π
     #class_model--------------------------------------
     'cls_type': 'MLP', # 'MLP' or 'CNN'
