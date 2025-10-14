@@ -14,29 +14,86 @@ def split_into_kernels(image, kernel_size):
     patches = patches.permute(0, 2, 1, 3, 4)
     return patches      #(b, n_patches, c, kernel_size, kernel_size)
 #--------------------------------------------------------------------
+# class PMEncoder(nn.Module):
+#     def __init__(self,input_dim,output_dim,alpha,device='cpu'):
+#         super(PMEncoder,self).__init__()
+#         phase = torch.rand(output_dim, input_dim) * 2 * np.pi - np.pi
+#         modulus = torch.ones(output_dim, input_dim)/np.sqrt(input_dim)
+
+#         real_part = modulus * torch.cos(phase)
+#         imag_part = modulus * torch.sin(phase)
+
+#         self.B = torch.complex(real_part, imag_part).detach().to(device)
+#         self.B.requires_grad = False
+#         self.alpha = torch.full((input_dim,), float(alpha), device=device)
+#         self.alpha = self.alpha.detach().to(device)
+#         self.alpha.requires_grad = False
+
+#     def forward(self, x):
+#         # print("alpha:", self.alpha)
+#         # print("alpha shape:", self.alpha.shape)
+#         # print("x before encoder:", x)
+#         # print("x shape before encoder:", x.shape)
+
+#         x = torch.exp(1j * self.alpha * x)
+#         x = x.T  
+#         x = torch.matmul(self.B, x).T 
+#         x = torch.abs(x)**2 
+#         return x
+
+def _rand_unitary(n, device=None, dtype=torch.cfloat):
+    """複素ガウス→QRでHaar近似のユニタリ行列を生成"""
+    A = torch.randn(n, n, device=device) + 1j * torch.randn(n, n, device=device)
+    Q, R = torch.linalg.qr(A)
+    # 対角成分の位相で正規化
+    d = torch.diagonal(R)
+    ph = d / torch.abs(d)
+    Q = Q @ torch.diag(ph.conj())
+    return Q.to(dtype)
+
 class PMEncoder(nn.Module):
-    def __init__(self,input_dim,output_dim,alpha,device='cpu'):
-        super(PMEncoder,self).__init__()
-        phase = torch.rand(output_dim, input_dim) * 2 * np.pi - np.pi
-        modulus = torch.ones(output_dim, input_dim)/np.sqrt(input_dim)
+    """
+    Photonic phase-mod encoder: [B, input_dim] -> [B, output_dim]
+    - 位相: φ = α ⊙ x （xは[0,1]想定）
+    - 入力場: E_in = A * exp(i φ)  （Aは等振幅）
+    - チップ: ユニタリUの上位 output_dim 行を観測行列Bとして使用
+    - 出力: I = |E_in @ B^T|^2  （PD強度）
+    """
+    def __init__(self, input_dim, output_dim, alpha=2*math.pi,device='cpu', seed=None):
+        super().__init__()
+        device = torch.device(device)
+        self.input_dim = input_dim
+        self.output_dim = output_dim
 
-        real_part = modulus * torch.cos(phase)
-        imag_part = modulus * torch.sin(phase)
+        if seed is not None:
+            torch.manual_seed(seed)
 
-        self.B = torch.complex(real_part, imag_part).detach().to(device)
-        self.B.requires_grad = False
-        self.alpha = (torch.rand(input_dim) - 0.5) * (2*alpha) 
-        self.alpha = self.alpha.detach().to(device) 
-        self.alpha.requires_grad = False
+        # ランダムユニタリの行を切り出して観測行列Bに（受動干渉の部分観測モデル）
+        U = _rand_unitary(input_dim, device=device)              # [in, in]
+        B = U[:output_dim, :]                                    # [out, in]
+        self.register_buffer("B", B)                             # 固定
+
+        # 位相係数 α と バイアス β（チャネル別）
+        alpha_t = torch.full((1, input_dim), float(alpha), dtype=torch.float32, device=device)
+        self.register_buffer("alpha", alpha_t)
+
+        # 入力振幅（総パワー一定なら 1/√N が無難）
+        amp = torch.full((1, input_dim), 1.0 / math.sqrt(input_dim), dtype=torch.float32, device=device)
+        self.register_buffer("amp", amp)
 
     def forward(self, x):
-        # print("alpha:", self.alpha)
-        # print("x before encoder:", x)
-        x = torch.exp(1j * self.alpha * x)
-        x = x.T  
-        x = torch.matmul(self.B, x).T 
-        x = torch.abs(x)**2 
-        return x
+        # x: [B, input_dim]（0..1の実数）
+        x = x.to(self.alpha.device, dtype=torch.float32)
+
+        # 位相 φ = α⊙x
+        phi = x * self.alpha                        # [B, in], 実数
+        # 入力場 E_in = A * exp(i φ)
+        E_in = self.amp * torch.exp(1j * phi)                    # [B, in], 複素
+        # 出力場
+        E_out = E_in @ self.B.transpose(0, 1)                    # [B, out], 複素
+        # PD強度
+        I = (E_out.abs() ** 2)                                   # [B, out], 実・非負
+        return I
 
 class IMEncoder(nn.Module):
     def __init__(self,input_dim,output_dim,alpha,device='cpu'):
@@ -171,7 +228,7 @@ class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
         self.fft = FFTLowFreqSelector(out_dim=self.fft_dim, log_magnitude=True)
         self.bn = nn.BatchNorm1d(self.fft_dim).to(device)
         self.ln = nn.LayerNorm(self.fft_dim, elementwise_affine=False).to(device)
-        self.encoder = encoders[enc_type](self.fft_dim,feat_dim,alpha,device) 
+        self.encoder = encoders[enc_type](self.fft_dim,feat_dim,alpha,device=device) 
 
         self._selected_cols = None  # ランダムに選んだ列のインデックスを保存するための変数
 
