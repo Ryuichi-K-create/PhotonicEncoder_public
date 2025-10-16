@@ -18,6 +18,8 @@ if system_type == "Windows":
         onedrive_path = os.path.join(home_directory, "OneDrive")
 elif system_type == "Darwin": 
     onedrive_path = os.path.join(home_directory, "Library", "CloudStorage", "OneDrive-個人用(2)")
+elif system_type == "Linux":
+    onedrive_path = os.path.join("/home1/konishi/Photonic_Encoder/PhotonicEncoder/result_data")
 # print(f"OneDrive path: {onedrive_path}")
 
 file_pathes = []

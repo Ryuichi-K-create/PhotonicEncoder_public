@@ -1,7 +1,8 @@
 import torch
 import matplotlib.pyplot as plt
-from matplotlib import rcParams
-rcParams['font.family'] = 'Times New Roman'
+from matplotlib import rcParams, font_manager
+_available_fonts = {f.name for f in font_manager.fontManager.ttflist}
+rcParams['font.family'] = 'Times New Roman' if 'Times New Roman' in _available_fonts else 'DejaVu Serif'
 import numpy as np
 import pandas as pd
 import seaborn as sns

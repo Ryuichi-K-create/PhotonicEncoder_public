@@ -35,8 +35,8 @@ params = {
     'batch_size': 100, #64 MNIST, 100 CIFAR10, 100 CINIC10
 
     #Encoder_Model--------------------------------
-    'enc_type': 'none', # 'none', 'MZM', 'LI'
-    'alpha': np.pi/2, 
+    'enc_type': 'PM', # 'none', 'MZM', 'LI'
+    'alpha': np.pi, 
     #位相変調機の感度[np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16],pi:-π~π
     #class_model--------------------------------------
     'cls_type': 'MLP', # 'MLP' or 'CNN'
@@ -50,15 +50,16 @@ params = {
     'lr': 0.001,
 
     #param--------------------------------------------
-    'num_try': 1,
+    'num_try': 5,
     'max_epochs': 10,
     'leverage': 1, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48](fft特徴量版では設定しない)
-    'kernel_size': 1, #(fft特徴量版では設定しない)
+    'kernel_size': 28, #(fft特徴量版では設定しない)
     #fft----------------------------------------------
     'fft_dim': 32, # FFT特徴量の次元数
     'enc_out': 17, # FFT出力の次元数
-    'compressed_dim': 17 # 圧縮後の次元数
-}
+    'compressed_dim': 17 # 圧縮後の次元数 
+} 
+
 #save---------------------------------------------
 folder_params = {k: params[k] for k in ['dataset', 'enc_type', 'cls_type']}
 if save:
@@ -68,7 +69,7 @@ data_loaders = {
     'cifar-10': load_CIFAR10_data,
     'cinic-10': load_CINIC10_data,
     'mnist': load_MNIST_data,
-    'fashion-mnist':load_csv_Fmnist_data,
+    'fashion-mnist':load_Fmnist_data,
     'covtype': load_Covtype_data
 }
 

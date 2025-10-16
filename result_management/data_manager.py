@@ -30,7 +30,8 @@ if system_type == "Windows":
         onedrive_path = os.path.join(home_directory, "OneDrive")
 elif system_type == "Darwin": 
     onedrive_path = os.path.join(home_directory, "Library", "CloudStorage", "OneDrive-個人用(2)")
-
+elif system_type == "Linux":
+    onedrive_path = os.path.join("/home1/konishi/Photonic_Encoder/PhotonicEncoder/result_data")
 #------------------------------------------------------------------------------------------
 def auto_git_push(branch_name,commit_msg="Auto commit"):
     commit_msg = f"{formatted_time}_{commit_msg}"

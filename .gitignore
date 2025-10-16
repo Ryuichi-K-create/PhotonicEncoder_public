@@ -1,3 +1,7 @@
 dataloader/samples/
 experiment/
 __pycache__/
+/result_data/
+Runner/Notebook
+.vscode/
+.venv/
