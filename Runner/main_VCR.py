@@ -13,7 +13,7 @@ else:
     device = torch.device('cpu')
 print(f'Using device: {device}')
 
-from dataloader.dataloader import load_MNIST_data,load_CINIC10_data,load_CIFAR10_data,load_Fmnist_data,load_Covtype_data
+from dataloader.dataloader import load_MNIST_data,load_CINIC10_data,load_CIFAR10_data,load_Fmnist_data,load_Covtype_data,load_csv_Fmnist_data
 from train.training import train_nomal
 from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusion_matrix,create_table
 from result_management.data_manager import save_csv,save_experiment_report,create_result_pdf
@@ -22,7 +22,7 @@ formatted_time = now.strftime("%m%d%H%M")
 formatted_time = int(formatted_time)
 print(f'-----Formatted time: {formatted_time} -----')
 #-----------------------------------------------------------------
-experiment_type = "fft" # 'normal' or 'fft' or 'deq'
+experiment_type = "normal" # 'normal' or 'fft' or 'deq'
 experiment_name = f"{experiment_type}{formatted_time}"
 variable_param = "none" #ここで設定した項目は配列にすること(none,leverage,alpha)
 save = False
@@ -35,7 +35,7 @@ params = {
     'batch_size': 100, #64 MNIST, 100 CIFAR10, 100 CINIC10
 
     #Encoder_Model--------------------------------
-    'enc_type': 'PM', # 'none', 'MZM', 'LI'
+    'enc_type': 'none', # 'none', 'MZM', 'LI'
     'alpha': np.pi/2, 
     #位相変調機の感度[np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16],pi:-π~π
     #class_model--------------------------------------
@@ -52,8 +52,12 @@ params = {
     #param--------------------------------------------
     'num_try': 1,
     'max_epochs': 10,
-    'leverage': 0, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48](fft特徴量版では設定しない)
-    'kernel_size': 0 #(fft特徴量版では設定しない)
+    'leverage': 1, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48](fft特徴量版では設定しない)
+    'kernel_size': 1, #(fft特徴量版では設定しない)
+    #fft----------------------------------------------
+    'fft_dim': 32, # FFT特徴量の次元数
+    'enc_out': 17, # FFT出力の次元数
+    'compressed_dim': 17 # 圧縮後の次元数
 }
 #save---------------------------------------------
 folder_params = {k: params[k] for k in ['dataset', 'enc_type', 'cls_type']}
@@ -64,7 +68,7 @@ data_loaders = {
     'cifar-10': load_CIFAR10_data,
     'cinic-10': load_CINIC10_data,
     'mnist': load_MNIST_data,
-    'fashion-mnist':load_Fmnist_data,
+    'fashion-mnist':load_csv_Fmnist_data,
     'covtype': load_Covtype_data
 }
 

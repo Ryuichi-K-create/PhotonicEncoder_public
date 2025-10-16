@@ -69,14 +69,17 @@ class PMEncoder(nn.Module):
             torch.manual_seed(seed)
 
         # ランダムユニタリの行を切り出して観測行列Bに（受動干渉の部分観測モデル）
-        U = _rand_unitary(input_dim, device=device)              # [in, in]
-        B = U[:output_dim, :]                                    # [out, in]
-        self.register_buffer("B", B)                             # 固定
+        U = _rand_unitary(input_dim, device=device)         # [in, in]
+        B = U[:output_dim, :]                               # [out, in]
+        self.register_buffer("B", B)                        # 固定
 
         # 位相係数 α と バイアス β（チャネル別）
-        alpha_t = torch.full((1, input_dim), float(alpha), dtype=torch.float32, device=device)
-        self.register_buffer("alpha", alpha_t)
-
+        # alpha_t = torch.full((1, input_dim), float(alpha), dtype=torch.float32, device=device)
+        # alpha_t = (torch.rand(input_dim) - 0.5) * (2*alpha) 
+        # self.register_buffer("alpha", alpha_t)
+        # alpha の ±10% の範囲でランダムな値を生成
+        alpha_t = torch.rand(1, input_dim, dtype=torch.float32, device=device) * (0.2 * float(alpha)) + (0.9 * float(alpha))
+        self.register_buffer("alpha", alpha_t.to(device))  # 固定
         # 入力振幅（総パワー一定なら 1/√N が無難）
         amp = torch.full((1, input_dim), 1.0 / math.sqrt(input_dim), dtype=torch.float32, device=device)
         self.register_buffer("amp", amp)
@@ -88,11 +91,11 @@ class PMEncoder(nn.Module):
         # 位相 φ = α⊙x
         phi = x * self.alpha                        # [B, in], 実数
         # 入力場 E_in = A * exp(i φ)
-        E_in = self.amp * torch.exp(1j * phi)                    # [B, in], 複素
+        E_in = self.amp * torch.exp(1j * phi)       # [B, in], 複素
         # 出力場
-        E_out = E_in @ self.B.transpose(0, 1)                    # [B, out], 複素
+        E_out = E_in @ self.B.transpose(0, 1)       # [B, out], 複素
         # PD強度
-        I = (E_out.abs() ** 2)                                   # [B, out], 実・非負
+        I = (E_out.abs() ** 2)                      # [B, out], 実・非負
         return I
 
 class IMEncoder(nn.Module):
@@ -188,7 +191,7 @@ class Image10Classifier(nn.Module):#10クラスの画像用
         x = x.view(b, self.channels, self.img_size, self.img_size)
         x = self.split(x, self.kernel_size)#(b, p, c, k, k)
         x = x.reshape(b * self.num_patches,
-                      self.channels * self.kernel_size**2)
+                     self.channels * self.kernel_size**2)
         if self.enc_type != 'none':
             x = self.encoder(x) 
         x = self.classifier(x,b)

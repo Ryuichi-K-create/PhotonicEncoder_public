@@ -24,8 +24,8 @@ print(f'-----Formatted time: {formatted_time} -----')
 #-----------------------------------------------------------------
 experiment_type = "fft_sim" # 'fft_phyz' or 'fft_sim'
 experiment_name = f"{experiment_type}{formatted_time}"
-variable_param = "none" #ここで設定した項目は配列にすること(none,leverage,alpha)
-save = False
+variable_param = "compressed_dim" #ここで設定した項目は配列にすること(none,leverage,alpha)
+save = True
 show = False
 
 params = {
@@ -35,8 +35,8 @@ params = {
     'batch_size': 100, #64 MNIST, 100 CIFAR10, 100 CINIC10
 
     #Encoder_Model--------------------------------
-    'enc_type': 'IM', # 'none', 'MZM', 'LI'
-    'alpha': np.pi/2, 
+    'enc_type': 'PM', # 'none', 'MZM', 'LI'
+    'alpha': np.pi, 
     #位相変調機の感度[np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16],pi:-π~π
     #class_model--------------------------------------
     'cls_type': 'MLP', # 'MLP' or 'CNN'
@@ -57,7 +57,7 @@ params = {
     #fft----------------------------------------------
     'fft_dim': 32, # FFT特徴量の次元数
     'enc_out': 17, # FFT出力の次元数
-    'compressed_dim': 17 # 圧縮後の次元数
+    'compressed_dim': list(range(17,0,-1)) # 圧縮後の次元数
 }
 #save---------------------------------------------
 folder_params = {k: params[k] for k in ['dataset', 'enc_type', 'cls_type']}
