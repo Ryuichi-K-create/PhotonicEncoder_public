@@ -34,8 +34,8 @@ class MLP_for_10(nn.Module):#10値分類なら使える。
 
     def forward(self, x,b):
         # print(f"MLP_for_10: x.shape={x.shape}, b={b}")
-        x = self.bn(x)
-        # x = self.ln(x)
+        # x = self.bn(x)
+        x = self.ln(x)
         x = x.reshape(b, -1)
         x = self.model(x)
         return x
@@ -79,9 +79,13 @@ class MLP_for_7(nn.Module):#7値分類の表データなら使える。
 class CNN_for10(nn.Module):
     def __init__(self,potential_dim,num_layer = 2,fc='relu',n_patches=64,dropout=0):
         super(CNN_for10, self).__init__()
-        feat_dim = potential_dim // n_patches
+        if n_patches is not None:
+            feat_dim = potential_dim // n_patches
+            self.side = int(np.sqrt(n_patches))
+        else:
+            feat_dim = potential_dim
+            self.side = 8
         self.bn = nn.BatchNorm2d(feat_dim)
-        self.side = int(np.sqrt(n_patches))
 
         self.conv1 = nn.Conv2d(feat_dim,32, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(32,64, kernel_size=3, stride=1, padding=1)
@@ -100,7 +104,7 @@ class CNN_for10(nn.Module):
 
     def forward(self, x,b):
         x = x.reshape(b, self.side, self.side, -1).permute(0, 3, 1, 2)
-        # print(f"CNN_for10: x reshaped to (b,c,h,w): x.shape={x.shape}")
+        print(f"CNN_for10: x reshaped to (b,c,h,w): x.shape={x.shape}")
         x = self.bn(x)
         x = self.conv1(x)
         x = self.func(x)

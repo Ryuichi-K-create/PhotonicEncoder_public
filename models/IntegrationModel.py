@@ -56,11 +56,11 @@ class PMEncoder(nn.Module):
         self.register_buffer("B", B)                        # 固定
 
         # 位相係数 α と バイアス β（チャネル別）
-        alpha_t = torch.full((1, input_dim), float(alpha), dtype=torch.float32, device=device)
+        # alpha_t = torch.full((1, input_dim), float(alpha), dtype=torch.float32, device=device)
         # alpha_t = (torch.rand(input_dim) - 0.5) * (2*alpha) 
         # self.register_buffer("alpha", alpha_t)
         # alpha の ±10% の範囲でランダムな値を生成
-        # alpha_t = torch.rand(1, input_dim, dtype=torch.float32, device=device) * (0.2 * float(alpha)) + (0.9 * float(alpha)) 
+        alpha_t = torch.rand(1, input_dim, dtype=torch.float32, device=device) * (0.2 * float(alpha)) + (0.9 * float(alpha)) 
         self.register_buffer("alpha", alpha_t.to(device))  # 固定
         # 入力振幅（総パワー一定なら 1/√N が無難）
         amp = torch.full((1, input_dim), 1.0 / math.sqrt(input_dim), dtype=torch.float32, device=device)
@@ -146,9 +146,6 @@ class Image10Classifier(nn.Module):#10クラスの画像用
         self.img_size = dataset_config[dataset]['img_size']
         self.channels = dataset_config[dataset]['channels']
 
-        self.kernel_size = kernel_size
-        kernel_in = self.channels*kernel_size**2
-        feat_dim = int(kernel_in/leverage)
         encoders = {
             'PM':PMEncoder,
             'IM':IMEncoder,
@@ -160,29 +157,40 @@ class Image10Classifier(nn.Module):#10クラスの画像用
             'MLP':MLP_for_10,
             'CNN':CNN_for10
         }
-
-        self.num_patches = (self.img_size//kernel_size)**2
-        potential_dim = self.num_patches * feat_dim
-        self.split = split_into_kernels 
         self.enc_type = enc_type
-        self.encoder = encoders[enc_type](kernel_in,feat_dim,alpha,device) 
-        self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc,self.num_patches,dropout).to(device)
-
+        self.kernel_size = kernel_size
+        if kernel_size > 0:
+            kernel_in = self.channels*kernel_size**2
+            feat_dim = int(kernel_in/leverage)
+            self.num_patches = (self.img_size//kernel_size)**2
+            potential_dim = self.num_patches * feat_dim
+            self.encoder = encoders[enc_type](kernel_in,feat_dim,alpha,device) 
+            self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc,self.num_patches,dropout).to(device)
+        else:
+            potential_dim = self.channels * self.img_size * self.img_size
+            feat_dim = int(potential_dim/leverage)
+            self.encoder = encoders[enc_type](potential_dim,feat_dim,alpha,device)
+            self.classifier =  classifiers[cls_type](feat_dim,num_layer,fc,n_patches=None,dropout=dropout).to(device)
+    
     def forward(self, x):
         # print("Image10Classifier: x.shape=",x.shape)
         b = x.size(0)
-        x = x.view(b, self.channels, self.img_size, self.img_size)
         # print(f"Image10Classifier: x reshaped to (b,c,h,w): x.shape={x.shape}")
-        x = self.split(x, self.kernel_size)#(b, p, c, k, k)
+        if self.kernel_size > 0:
+            x = x.view(b, self.channels, self.img_size, self.img_size)
+            x = split_into_kernels(x, self.kernel_size)#(b, p, c, k, k)
         # print(f"Image10Classifier: x split into patches: x.shape={x.shape}")
-        x = x.reshape(b * self.num_patches,
+            x = x.reshape(b * self.num_patches,
                     self.channels * self.kernel_size**2)
+        else:
+            x = x.view(b, -1)
         if self.enc_type != 'none': 
-            x = normalize_zero_one(x) 
+            # x = normalize_zero_one(x) 
             # print("Before Encoder: x.shape=",x.shape)
-            x = self.encoder(x) 
+            # print(f"Before Encoder: x={x[0]}")
+            x = self.encoder(x)
             # print("After Encoder: x.shape=",x.shape)
-        x = self.classifier(x,b) 
+        x = self.classifier(x,b)
         return x
 
 #--------------------------------------------------------------------
@@ -261,10 +269,7 @@ class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
             # x = self.bn(x)
             # x = self.ln(x)
             #--------------------------------------------
-            eps = 1e-8
-            xmin = x.min(dim=1, keepdim=True)[0]
-            xmax = x.max(dim=1, keepdim=True)[0]
-            x = (x - xmin) / (xmax - xmin + eps)
+            x = normalize_zero_one(x)
             #--------------------------------------------
             # print("x after normalization:", x)
             x = self.encoder(x.view(b, -1)) 
