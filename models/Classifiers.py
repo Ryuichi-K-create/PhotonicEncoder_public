@@ -99,7 +99,8 @@ class CNN_for10(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x,b):
-        x = x.view(b, self.side, self.side, -1).permute(0, 3, 1, 2)
+        x = x.reshape(b, self.side, self.side, -1).permute(0, 3, 1, 2)
+        # print(f"CNN_for10: x reshaped to (b,c,h,w): x.shape={x.shape}")
         x = self.bn(x)
         x = self.conv1(x)
         x = self.func(x)
@@ -108,7 +109,7 @@ class CNN_for10(nn.Module):
         x = self.conv2(x)
         x = self.func(x)
         x = self.pool(x)
-        x = x.view(x.size(0), -1)
+        x = x.reshape(x.size(0), -1)
         x = self.func(self.fc1(x))
         x = self.dropout(x)
         x = self.fc2(x)

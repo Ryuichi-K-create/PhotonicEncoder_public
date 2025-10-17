@@ -14,36 +14,18 @@ def split_into_kernels(image, kernel_size):
     patches = patches.permute(0, 2, 1, 3, 4)
     return patches      #(b, n_patches, c, kernel_size, kernel_size)
 #--------------------------------------------------------------------
-# class PMEncoder(nn.Module):
-#     def __init__(self,input_dim,output_dim,alpha,device='cpu'):
-#         super(PMEncoder,self).__init__()
-#         phase = torch.rand(output_dim, input_dim) * 2 * np.pi - np.pi
-#         modulus = torch.ones(output_dim, input_dim)/np.sqrt(input_dim)
+def normalize_zero_one(x, eps=1e-8):
+    # x を [0,1] に正規化
+    eps = 1e-8
+    xmin = x.min(dim=1, keepdim=True)[0]
+    xmax = x.max(dim=1, keepdim=True)[0]
+    x = (x - xmin) / (xmax - xmin + eps)
+    return x
 
-#         real_part = modulus * torch.cos(phase)
-#         imag_part = modulus * torch.sin(phase)
-
-#         self.B = torch.complex(real_part, imag_part).detach().to(device)
-#         self.B.requires_grad = False
-#         self.alpha = torch.full((input_dim,), float(alpha), device=device)
-#         self.alpha = self.alpha.detach().to(device)
-#         self.alpha.requires_grad = False
-
-#     def forward(self, x):
-#         # print("alpha:", self.alpha)
-#         # print("alpha shape:", self.alpha.shape)
-#         # print("x before encoder:", x)
-#         # print("x shape before encoder:", x.shape)
-
-#         x = torch.exp(1j * self.alpha * x)
-#         x = x.T  
-#         x = torch.matmul(self.B, x).T 
-#         x = torch.abs(x)**2 
-#         return x
-
+#--------------------------------------------------------------------
 def _rand_unitary(n, device=None, dtype=torch.cfloat):
     """複素ガウス→QRでHaar近似のユニタリ行列を生成"""
-    A = torch.randn(n, n, device=device) + 1j * torch.randn(n, n, device=device)
+    A = torch.randn(n, n, device=device) + 1j * torch.randn(n, n, device=device) 
     Q, R = torch.linalg.qr(A)
     # 対角成分の位相で正規化
     d = torch.diagonal(R)
@@ -57,9 +39,9 @@ class PMEncoder(nn.Module):
     - 位相: φ = α ⊙ x （xは[0,1]想定）
     - 入力場: E_in = A * exp(i φ)  （Aは等振幅）
     - チップ: ユニタリUの上位 output_dim 行を観測行列Bとして使用
-    - 出力: I = |E_in @ B^T|^2  （PD強度）
+    - 出力: I = |E_in @ B^T|^2  （PD強度） 
     """
-    def __init__(self, input_dim, output_dim, alpha=2*math.pi,device='cpu', seed=None):
+    def __init__(self, input_dim, output_dim, alpha=2*math.pi,device='cpu', seed=None): 
         super().__init__()
         device = torch.device(device)
         self.input_dim = input_dim
@@ -78,20 +60,13 @@ class PMEncoder(nn.Module):
         # alpha_t = (torch.rand(input_dim) - 0.5) * (2*alpha) 
         # self.register_buffer("alpha", alpha_t)
         # alpha の ±10% の範囲でランダムな値を生成
-        # alpha_t = torch.rand(1, input_dim, dtype=torch.float32, device=device) * (0.2 * float(alpha)) + (0.9 * float(alpha))
+        # alpha_t = torch.rand(1, input_dim, dtype=torch.float32, device=device) * (0.2 * float(alpha)) + (0.9 * float(alpha)) 
         self.register_buffer("alpha", alpha_t.to(device))  # 固定
         # 入力振幅（総パワー一定なら 1/√N が無難）
         amp = torch.full((1, input_dim), 1.0 / math.sqrt(input_dim), dtype=torch.float32, device=device)
         self.register_buffer("amp", amp)
 
     def forward(self, x):
-        #-------------------------------------
-        # x を [0,1] に正規化
-        eps = 1e-8
-        xmin = x.min(dim=1, keepdim=True)[0]
-        xmax = x.max(dim=1, keepdim=True)[0]
-        x = (x - xmin) / (xmax - xmin + eps)
-        #-------------------------------------
         # x: [B, input_dim]（0..1の実数）
         x = x.to(self.alpha.device, dtype=torch.float32)
 
@@ -194,15 +169,22 @@ class Image10Classifier(nn.Module):#10クラスの画像用
         self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc,self.num_patches,dropout).to(device)
 
     def forward(self, x):
-        b=x.size(0)
+        # print("Image10Classifier: x.shape=",x.shape)
+        b = x.size(0)
         x = x.view(b, self.channels, self.img_size, self.img_size)
+        # print(f"Image10Classifier: x reshaped to (b,c,h,w): x.shape={x.shape}")
         x = self.split(x, self.kernel_size)#(b, p, c, k, k)
+        # print(f"Image10Classifier: x split into patches: x.shape={x.shape}")
         x = x.reshape(b * self.num_patches,
-                     self.channels * self.kernel_size**2)
-        if self.enc_type != 'none':
+                    self.channels * self.kernel_size**2)
+        if self.enc_type != 'none': 
+            x = normalize_zero_one(x) 
+            # print("Before Encoder: x.shape=",x.shape)
             x = self.encoder(x) 
-        x = self.classifier(x,b)
+            # print("After Encoder: x.shape=",x.shape)
+        x = self.classifier(x,b) 
         return x
+
 #--------------------------------------------------------------------
 class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
     def __init__(self, dataset,kernel_size,leverage,
@@ -292,8 +274,6 @@ class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
         x = self.classifier(x,b)
         return x
 
-#--------------------------------------------------------------------
-
 class Table10Classifier(nn.Module):#10クラスの表データ用
     def __init__(self, dataset,kernel_size,leverage,
                  enc_type,alpha,cls_type,num_layer,fc,ex_type,dropout,fft_params,device):
@@ -321,10 +301,10 @@ class Table10Classifier(nn.Module):#10クラスの表データ用
     def forward(self, x):
         b=x.size(0)
         if self.enc_type != 'none':
+            x = normalize_zero_one(x)
             x = self.encoder(x)
         x = self.classifier(x,b)
         return x 
-
 
 class DEQ_Image10Classifier(nn.Module):#10クラスの画像用(DEQ)
     def __init__(self, dataset,kernel_size,leverage,
@@ -427,7 +407,6 @@ class DEQ_Image10Classifier_FFT(nn.Module):#10クラスの画像用(DEQ)
         x = self.deq_main(x)
         x = self.classifier(x,b)
         return x
-
 
 class DEQ_Table10Classifier(nn.Module):
     def __init__(self, dataset,kernel_size,leverage,
