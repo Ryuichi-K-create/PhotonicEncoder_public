@@ -83,8 +83,8 @@ class CNN_for10(nn.Module):
             feat_dim = potential_dim // n_patches
             self.side = int(np.sqrt(n_patches))
         else:
-            feat_dim = potential_dim
             self.side = 8
+            feat_dim = potential_dim // (self.side * self.side)
         self.bn = nn.BatchNorm2d(feat_dim)
 
         self.conv1 = nn.Conv2d(feat_dim,32, kernel_size=3, stride=1, padding=1)
@@ -104,7 +104,7 @@ class CNN_for10(nn.Module):
 
     def forward(self, x,b):
         x = x.reshape(b, self.side, self.side, -1).permute(0, 3, 1, 2)
-        print(f"CNN_for10: x reshaped to (b,c,h,w): x.shape={x.shape}")
+        # print(f"CNN_for10: x reshaped to (b,c,h,w): x.shape={x.shape}")
         x = self.bn(x)
         x = self.conv1(x)
         x = self.func(x)

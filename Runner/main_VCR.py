@@ -31,7 +31,7 @@ show = False
 params = {
     'none':[0], #variable_param=noneの際は1回だけ繰り返す
     #data---------------------------------------------
-    'dataset': 'cinic-10', # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
+    'dataset': 'cifar-10', # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
     'batch_size': 100, #64 MNIST, 100 CIFAR10, 100 CINIC10
 
     #Encoder_Model--------------------------------
@@ -51,9 +51,9 @@ params = {
 
     #param--------------------------------------------
     'num_try': 1,
-    'max_epochs': 10,
+    'max_epochs': 20,
     'leverage': 8, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48](fft特徴量版では設定しない)
-    'kernel_size': 8, #(fft特徴量版では設定しない)
+    'kernel_size': 0, #0の時、分割なし。(fft特徴量版では設定しない)
     #fft----------------------------------------------
     'fft_dim': 32, # FFT特徴量の次元数
     'enc_out': 17, # FFT出力の次元数

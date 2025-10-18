@@ -56,11 +56,11 @@ class PMEncoder(nn.Module):
         self.register_buffer("B", B)                        # 固定
 
         # 位相係数 α と バイアス β（チャネル別）
-        # alpha_t = torch.full((1, input_dim), float(alpha), dtype=torch.float32, device=device)
+        alpha_t = torch.full((1, input_dim), float(alpha), dtype=torch.float32, device=device)
         # alpha_t = (torch.rand(input_dim) - 0.5) * (2*alpha) 
         # self.register_buffer("alpha", alpha_t)
         # alpha の ±10% の範囲でランダムな値を生成
-        alpha_t = torch.rand(1, input_dim, dtype=torch.float32, device=device) * (0.2 * float(alpha)) + (0.9 * float(alpha)) 
+        # alpha_t = torch.rand(1, input_dim, dtype=torch.float32, device=device) * (0.2 * float(alpha)) + (0.9 * float(alpha)) 
         self.register_buffer("alpha", alpha_t.to(device))  # 固定
         # 入力振幅（総パワー一定なら 1/√N が無難）
         amp = torch.full((1, input_dim), 1.0 / math.sqrt(input_dim), dtype=torch.float32, device=device)
