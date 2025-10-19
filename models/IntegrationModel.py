@@ -56,8 +56,8 @@ class PMEncoder(nn.Module):
         self.register_buffer("B", B)                        # 固定
 
         # 位相係数 α と バイアス β（チャネル別）
-        alpha_t = torch.full((1, input_dim), float(alpha), dtype=torch.float32, device=device)
-        # alpha_t = (torch.rand(input_dim) - 0.5) * (2*alpha) 
+        # alpha_t = torch.full((1, input_dim), float(alpha), dtype=torch.float32, device=device)
+        alpha_t = (torch.rand(input_dim) - 0.5) * (2*alpha)
         # self.register_buffer("alpha", alpha_t)
         # alpha の ±10% の範囲でランダムな値を生成
         # alpha_t = torch.rand(1, input_dim, dtype=torch.float32, device=device) * (0.2 * float(alpha)) + (0.9 * float(alpha)) 
@@ -327,20 +327,30 @@ class DEQ_Image10Classifier(nn.Module):#10クラスの画像用(DEQ)
         self.channels = dataset_config[dataset]['channels']
 
         self.kernel_size = kernel_size
-        kernel_in = self.channels*kernel_size**2
+        
         classifiers = {
             'MLP':MLP_for_10,
             'CNN':CNN_for10
         }
-        self.num_patches = (self.img_size//kernel_size)*(self.img_size//kernel_size) 
-        kernel_in_total = kernel_in * self.num_patches
-        # self.z_dim = int(kernel_in/leverage)(anderson軽量化)
-        self.z_dim = int(kernel_in_total/leverage)
-        # potential_dim = self.num_patches * self.z_dim(anderson軽量化)
-        potential_dim = self.z_dim
+
+        if kernel_size > 0:
+            kernel_in = self.channels*kernel_size**2
+            self.num_patches = (self.img_size//kernel_size)*(self.img_size//kernel_size) 
+            kernel_in_total = kernel_in * self.num_patches
+            self.z_dim = int(kernel_in/leverage)#(anderson軽量化)
+            # self.z_dim = int(kernel_in_total/leverage)
+            potential_dim = self.num_patches * self.z_dim#(anderson軽量化)
+        else:
+            # kernel_size = 0: 画像全体を1つのベクトルとして処理
+            kernel_in = self.channels * self.img_size * self.img_size  # 28*28*1 = 784 for Fashion-MNIST
+            self.num_patches = 1  # パッチ数は1
+            self.z_dim = int(kernel_in/leverage)  # 784/leverage
+            potential_dim = self.z_dim  # パッチが1つなので z_dim と同じ
+        # potential_dim = self.z_dim
         self.num_iter = num_iter
         #--------------------------------------------
-        cell = Cell(kernel_in_total, self.z_dim,enc_type,alpha,gamma,device).to(device)
+        cell = Cell(kernel_in, self.z_dim,enc_type,alpha,gamma,device).to(device)
+        # cell = Cell(kernel_in_total, self.z_dim,enc_type,alpha,gamma,device).to(device)
         self.deq_main = DEQFixedPoint(cell,anderson,self.z_dim,
                                       m = m,
                                       num_iter = num_iter,
@@ -354,13 +364,16 @@ class DEQ_Image10Classifier(nn.Module):#10クラスの画像用(DEQ)
         
     def forward(self, x):
         b=x.size(0)
-        x = x.view(b, self.channels, self.img_size, self.img_size)
-        x = split_into_kernels(x, self.kernel_size)#(b, p, c, k, k)
-
-        x = x.reshape(b,-1)
+        if self.kernel_size > 0:
+            x = x.view(b, self.channels, self.img_size, self.img_size)
+            x = split_into_kernels(x, self.kernel_size)#(b, p, c, k, k)
+            x = x.reshape(b*self.num_patches,-1)
+        else:
+            # kernel_size = 0: 画像全体をフラット化
+            x = x.view(b, -1)  # (b, 784) for Fashion-MNIST
 
         x = self.deq_main(x)
-        x = x.reshape(b * self.num_patches,-1)
+        # x = x.reshape(b * self.num_patches,-1)
         x = self.classifier(x,b)
         return x
 

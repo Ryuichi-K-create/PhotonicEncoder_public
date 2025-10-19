@@ -36,16 +36,20 @@ class Cell(nn.Module):
         # self.fc1 = SNLinearRelax(z_dim, z_dim, gamma=gamma)
 
         self.bn = nn.BatchNorm1d(z_dim)
+        self.ln = nn.LayerNorm(z_dim,elementwise_affine=False)
         self.act = nn.ReLU()
         # self.act = nn.Tanh()
     def forward(self,z , x):
         zx = torch.cat([x,z],dim=1)
+        # print(f"Cellzx:{zx.shape}")
         z = self.enc1(zx)
         #以下、積和演算電子回路-----------------------
-        if x.shape[0] != 1:
-            z = self.bn(z)
+        # if x.shape[0] != 1:
+        #     z = self.bn(z)
+        z = self.ln(z)
         z = self.fc1(z)
-        z = self.act(z)
+        # z = self.act(z)
+        # print(f"Cellz:{z.shape}")
         return z
 
 
@@ -79,7 +83,8 @@ class Cell_fft(nn.Module):
 
 def anderson(fc, x0, z_dim, m, num_iter, tol, beta, lam=1e-4):
     bsz,_ = x0.shape
-    X = torch.zeros(bsz, m, z_dim, dtype=x0.dtype, device=x0.device)
+    dtype, device = x0.dtype, x0.device
+    X = torch.zeros(bsz, m, z_dim, dtype=dtype, device=device)
     F = torch.zeros_like(X)
     X[:, 0], F[:, 0] = x0, fc(x0)
     
@@ -93,17 +98,16 @@ def anderson(fc, x0, z_dim, m, num_iter, tol, beta, lam=1e-4):
     if num_iter <= 2:
         return X[:, 1], []
 
-    H_mat = torch.zeros(bsz, m + 1, m + 1, dtype=x0.dtype, device=x0.device)
+    H_mat = torch.zeros(bsz, m + 1, m + 1, dtype=dtype, device=device)
     H_mat[:, 0, 1:] = H_mat[:, 1:, 0] = 1
-    y = torch.zeros(bsz, m + 1, 1, dtype=x0.dtype, device=x0.device)
+    y = torch.zeros(bsz, m + 1, 1, dtype=dtype, device=device)
     y[:, 0] = 1
 
     res = []  # 収束誤差の履歴
-    k = 1  # kを初期化
     for k in range(2, num_iter):
         n = min(k, m)
         G = F[:, :n] - X[:, :n]
-        H_mat[:, 1:n + 1, 1:n + 1] = torch.bmm(G, G.transpose(1, 2)) + lam * torch.eye(n, dtype=x0.dtype, device=x0.device)[None]
+        H_mat[:, 1:n + 1, 1:n + 1] = torch.bmm(G, G.transpose(1, 2)) + lam * torch.eye(n, dtype=dtype, device=device)[None]
         try:
             alpha = torch.linalg.lstsq( H_mat[:, :n+1, :n+1], y[:, :n+1]).solution[:, 1:n+1, 0] #最小2乗解
             # alpha = torch.linalg.solve(H_mat[:, :n + 1, :n + 1], y[:, :n + 1])[:, 1:n + 1, 0]
@@ -111,13 +115,14 @@ def anderson(fc, x0, z_dim, m, num_iter, tol, beta, lam=1e-4):
             print(f"[Warn] Skipping batch {bsz} at iter {k} due to singular matrix.")
             continue 
         X[:, k % m] = beta * (alpha[:, None] @ F[:, :n]).squeeze(1) + (1 - beta) * (alpha[:, None] @ X[:, :n]).squeeze(1)
-        x_current = X[:,k%m]
-        F[:, k % m] = fc(X[:,k%m])
+        F[:, k % m] = fc(X[:, k % m])
         # 残差のノルムを計算（収束判定用）
         res_norm = (F[:, k % m] - X[:, k % m]).norm().item() / (1e-5 + F[:, k % m].norm().item())
         res.append(res_norm)
         if res[-1] < tol:
             break
+    else:
+        k = num_iter - 1  # 最大反復に達した場合
     return X[:, k % m], res
 
 class DEQFixedPoint(nn.Module):

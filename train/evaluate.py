@@ -87,7 +87,7 @@ def plot_confusion_matrix(true_labels,pred_labels,dataset,test_acc,Save=False,Sh
     cm = cm.astype('float')/cm.sum(axis=1,keepdims = True)
     plt.figure(figsize=(6,4.5))#8,6
     sns.heatmap(cm, annot=True, fmt=".2f", cmap="Blues",
-                xticklabels=num_labels[dataset],yticklabels=num_labels[dataset],vmin=0.0, vmax=1.0)
+                xticklabels=num_labels[dataset],yticklabels=num_labels[dataset])#,vmin=0.0, vmax=1.0)
     plt.xlabel('Predicted label')
     plt.ylabel('True label')
     plt.title(f"Overall Correction Rate:{test_acc:.2f}%")
@@ -195,15 +195,21 @@ def convergence_verify(params,gamma,data_train,data_test,device,Show=False):
     }
     img_size = dataset_config[dataset]['img_size']
     channels = dataset_config[dataset]['channels']
-    kernel_in = int(channels*kernel_size**2)
 
-    # leverageがlistの場合は最初の要素を使用、intの場合はそのまま使用
-    leverage_value = leverage[0] if isinstance(leverage, list) else leverage
+    if kernel_size > 0:
+        kernel_in = int(channels*kernel_size**2)
 
-    z_dim = int(kernel_in/leverage_value)
-    num_patches = int(img_size/kernel_size)**2
-    cell = Cell(kernel_in, z_dim,enc_type,alpha,gamma,device).to(device)
+        # leverageがlistの場合は最初の要素を使用、intの場合はそのまま使用
+        leverage_value = leverage[0] if isinstance(leverage, list) else leverage
 
+        z_dim = int(kernel_in/leverage_value)
+        num_patches = int(img_size/kernel_size)**2
+        cell = Cell(kernel_in, z_dim,enc_type,alpha,gamma,device).to(device)
+    else:
+        leverage_value = leverage[0] if isinstance(leverage, list) else leverage
+        in_dim = channels*img_size*img_size
+        z_dim = int(in_dim / leverage_value)
+        cell = Cell(in_dim, z_dim,enc_type,alpha,gamma,device).to(device)
 
     batch_size = 64
     _,test_dataloader = get_new_dataloader(data_train,data_test,batch_size)
@@ -216,12 +222,17 @@ def convergence_verify(params,gamma,data_train,data_test,device,Show=False):
     with torch.no_grad():
         B = 1
         x_sample = x_sample.view(B, channels,img_size, img_size)
-        x_patch = split_into_kernels(x_sample, kernel_size)           # (B, N, k, k)
-        x_patch = x_patch.reshape(B * num_patches, -1)   # (B*N, in_dim)
-        def fc(z):
-            return cell(z,x_patch)
-
-        z0 = torch.zeros(B * num_patches, z_dim, device=device)
+        if kernel_size > 0:
+            x_patch = split_into_kernels(x_sample, kernel_size)# (B, N, k, k)
+            x_patch = x_patch.reshape(B * num_patches, -1)   # (B*N, in_dim)
+            def fc(z):
+                return cell(z,x_patch)
+            z0 = torch.zeros(B * num_patches, z_dim, device=device)
+        else:
+            x_flat = x_sample.view(B, -1)  # (B, in_dim)
+            def fc(z):
+                return cell(z,x_flat)
+            z0 = torch.zeros(B, z_dim, device=device)
 
         z_final, relres = anderson(
             fc,
