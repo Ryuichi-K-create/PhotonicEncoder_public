@@ -36,7 +36,7 @@ class Cell(nn.Module):
         # self.fc1 = SNLinearRelax(z_dim, z_dim, gamma=gamma)
 
         self.bn = nn.BatchNorm1d(z_dim)
-        self.ln = nn.LayerNorm(z_dim,elementwise_affine=False)
+        self.ln = nn.LayerNorm(z_dim)#,elementwise_affine=False)
         self.act = nn.ReLU()
         # self.act = nn.Tanh()
     def forward(self,z , x):
