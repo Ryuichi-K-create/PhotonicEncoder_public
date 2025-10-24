@@ -31,15 +31,15 @@ show = False
 params = {
     'none':[0], #variable_param=noneの際は1回だけ繰り返す
     #data---------------------------------------------
-    'dataset': 'cifar-10', # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
+    'dataset': 'fashion-mnist', # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
     'batch_size': 100, #64 MNIST, 100 CIFAR10, 100 CINIC10
 
     #Encoder_Model--------------------------------
     'enc_type': 'PM', # 'none', 'MZM', 'LI'
-    'alpha': np.pi, 
+    'alpha': np.pi/2, 
     #位相変調機の感度[np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16],pi:-π~π
     #class_model--------------------------------------
-    'cls_type': 'CNN', # 'MLP' or 'CNN'
+    'cls_type': 'MLP', # 'MLP' or 'CNN'
     'num_layer': 2,
     'fc': 'relu', #num_layer>=2のときのみ有効
     'dropout': 0.0,
@@ -51,8 +51,8 @@ params = {
 
     #param--------------------------------------------
     'num_try': 1,
-    'max_epochs': 20,
-    'leverage': 8, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48](fft特徴量版では設定しない)
+    'max_epochs': 10,
+    'leverage': 49, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48](fft特徴量版では設定しない)
     'kernel_size': 0, #0の時、分割なし。(fft特徴量版では設定しない)
     #fft----------------------------------------------
     'fft_dim': 32, # FFT特徴量の次元数

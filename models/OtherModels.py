@@ -35,7 +35,7 @@ class Cell(nn.Module):
         self.fc1 = nn.Linear(z_dim, z_dim)
         # self.fc1 = SNLinearRelax(z_dim, z_dim, gamma=gamma)
 
-        self.bn = nn.BatchNorm1d(z_dim)
+        # self.bn = nn.BatchNorm1d(z_dim)
         self.ln = nn.LayerNorm(z_dim)#,elementwise_affine=False)
         self.act = nn.ReLU()
         # self.act = nn.Tanh()
@@ -44,11 +44,8 @@ class Cell(nn.Module):
         # print(f"Cellzx:{zx.shape}")
         z = self.enc1(zx)
         #以下、積和演算電子回路-----------------------
-        # if x.shape[0] != 1:
-        #     z = self.bn(z)
         z = self.ln(z)
         z = self.fc1(z)
-        # z = self.act(z)
         # print(f"Cellz:{z.shape}")
         return z
 

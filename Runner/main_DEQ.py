@@ -42,7 +42,7 @@ params = {
     #位相変調機の感度[np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16],pi:-π~π
     #class_model--------------------------------------
     'cls_type': 'MLP', # 'MLP' or 'CNN'
-    'num_layer': 2,
+    'num_layer': 1,
     'fc': 'relu',
     'dropout': 0.0,
 
@@ -54,8 +54,8 @@ params = {
     #param--------------------------------------------
     'num_try': 5,
     'max_epochs': 10,  # 元に戻す
-    'leverage': 8, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
-    'kernel_size': 4, #(fft特徴量版では設定しない)
+    'leverage': 16, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48] enc is not none
+    'kernel_size': 0, #(fft特徴量版では設定しない)
 
     #anderson param-----------------------------------
     'm': 5,  
@@ -107,7 +107,7 @@ for variable in params[variable_param]: #variable:leverage,alpha
 #-----------------------------------------------------
     Relres_ = []
     Unresovable = 0
-    k = 100
+    k = 1
     Show_rel = False
     for i in range(k):
         relres = convergence_verifies[params["dataset"]](params,gamma=params['gamma'],data_train=data_train,data_test=data_test,device=device,Show=Show_rel)
