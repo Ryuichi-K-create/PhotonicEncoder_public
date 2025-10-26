@@ -11,10 +11,10 @@ class MLP_for_10(nn.Module):#10値分類なら使える。
         if n_patches is not None:
             # print(f"MLP_for_10: potential_dim={potential_dim}, n_patches={n_patches}")
             # self.bn = nn.BatchNorm1d(potential_dim//n_patches)
-            self.ln = nn.LayerNorm(potential_dim//n_patches)
+            self.ln = nn.LayerNorm(potential_dim//n_patches,elementwise_affine=False)
         else:
             # self.bn = nn.BatchNorm1d(potential_dim)
-            self.ln = nn.LayerNorm(potential_dim)
+            self.ln = nn.LayerNorm(potential_dim,elementwise_affine=False)
         func ={
             'relu':nn.ReLU(),
             'tanh':nn.Tanh(),
@@ -36,7 +36,7 @@ class MLP_for_10(nn.Module):#10値分類なら使える。
     def forward(self, x,b):
         # print(f"MLP_for_10: x.shape={x.shape}, b={b}")
         # x = self.bn(x)
-        # x = self.ln(x)
+        x = self.ln(x)
         x = x.reshape(b, -1)
         x = self.model(x)
         return x
