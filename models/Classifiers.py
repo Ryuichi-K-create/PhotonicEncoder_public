@@ -36,7 +36,7 @@ class MLP_for_10(nn.Module):#10値分類なら使える。
     def forward(self, x,b):
         # print(f"MLP_for_10: x.shape={x.shape}, b={b}")
         # x = self.bn(x)
-        x = self.ln(x)
+        # x = self.ln(x)
         x = x.reshape(b, -1)
         x = self.model(x)
         return x
