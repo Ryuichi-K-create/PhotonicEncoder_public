@@ -452,16 +452,17 @@ def show_images(images,labels,dataset,fixed_indices):
 
 #------------------------------------------------------------------------------------------
 def final_graph_maker(file_pathes,variable_param,variable_values,memory_lis,labels,Save=False, Show=False):
-
+    labelsize = 15
+    fontsize = 25
     fmts =  ['-o', '-s', '-^', '-D']  # 各モデルのプロットスタイル
 
     # LOSSのグラフ
     fig1, ax1 = plt.subplots(figsize=(6, 4.5))
-    ax1.tick_params(axis='both', labelsize=15)
+    ax1.tick_params(axis='both', labelsize=labelsize)
 
     # ACCのグラフ
     fig2, ax2 = plt.subplots(figsize=(6, 4.5))
-    ax2.tick_params(axis='both', labelsize=15)
+    ax2.tick_params(axis='both', labelsize=labelsize)
 
     i = 0
     for file_path in file_pathes:
@@ -498,7 +499,7 @@ def final_graph_maker(file_pathes,variable_param,variable_values,memory_lis,labe
     elif variable_param == 'compressed_dim':
         x_label = 'Encoder Output'
 
-    ax1.set_xlabel(x_label, fontsize=15)
+    ax1.set_xlabel(x_label, fontsize=fontsize)
     ax1.set_xticks(memory_lis)
     if variable_param == 'leverage':
         ax1.set_xticklabels([f"1:{x}" for x in memory_lis])
@@ -508,11 +509,11 @@ def final_graph_maker(file_pathes,variable_param,variable_values,memory_lis,labe
         ax1.set_xticklabels(xticklabels)
     else:
         ax1.set_xticks(memory_lis)
-    ax1.set_ylabel('LOSS', fontsize=15)
+    ax1.set_ylabel('LOSS', fontsize=fontsize)
     ax1.grid(True)
 
 
-    ax2.set_xlabel(x_label, fontsize=15)
+    ax2.set_xlabel(x_label, fontsize=fontsize)
     ax2.set_xticks(memory_lis)
     if variable_param == 'leverage':
         ax2.set_xticklabels([f"1:{x}" for x in memory_lis])
@@ -520,8 +521,8 @@ def final_graph_maker(file_pathes,variable_param,variable_values,memory_lis,labe
         xticklabels = [r"$2\pi$", r"$\pi$", r"$\dfrac{\pi}{2}$", r"$\dfrac{\pi}{4}$", r"$\dfrac{\pi}{16}$"]
         # xticklabels = [r"$\dfrac{\pi}{16}$",r"$\dfrac{\pi}{32}$", r"$\dfrac{\pi}{64}$", r"$\dfrac{\pi}{128}$"]#---------------
         ax2.set_xticklabels(xticklabels)
-    ax2.set_ylabel('Accuracy', fontsize=15)
-    ax2.legend(fontsize=15, loc='upper left', bbox_to_anchor=(1.0, 1))
+    ax2.set_ylabel('Accuracy', fontsize=fontsize)
+    ax2.legend(fontsize=fontsize, loc='upper left', bbox_to_anchor=(1.0, 1))
     ax2.grid(True)
     if Show:
         plt.show()
