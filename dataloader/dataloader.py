@@ -98,8 +98,15 @@ def load_csv_Fmnist_data():
     )
     return (train_dataset, test_dataset)
 #--------------------------------------------------------
-def load_compressed_Fmnist_data():
-    file_path = os.path.join(os.path.dirname(__file__), 'samples',  'fashion_mnist_fft_features_outputdata.csv')
+def load_compressed_Fmnist_data(data_id=0):
+    file_name = {0: 'fashion_mnist_fft_features_inputdata_Norm0.50_Results_Adjust.csv',
+                 1: 'fashion_mnist_fft_features_inputdata_Norm0.50_Results_NoAdjust.csv',
+                 2:'fashion_mnist_fft_features_inputdata_Norm0.75_Results_Adjust.csv',
+                 3:'fashion_mnist_fft_features_inputdata_Norm0.75_Results_NoAdjust.csv',
+                 4:'fashion_mnist_fft_features_inputdata_Norm1.00_Results_Adjust.csv',
+                 5:'fashion_mnist_fft_features_inputdata_Norm1.00_Results_NoAdjust.csv'
+                 }
+    file_path = os.path.join(os.path.dirname(__file__), 'samples','fashion_mnist_fft',  file_name[data_id])
     data = pd.read_csv(file_path, header=None)
     X = data.iloc[:, 0:17].to_numpy()
     y = data.iloc[:, 18].to_numpy()  # 正しいラベル列は18列目

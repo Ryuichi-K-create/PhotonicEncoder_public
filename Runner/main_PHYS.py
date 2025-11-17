@@ -13,7 +13,7 @@ else:
     device = torch.device('cpu')
 print(f'Using device: {device}')
 
-from dataloader.dataloader import load_MNIST_data,load_CINIC10_data,load_CIFAR10_data,load_Fmnist_data,load_Covtype_data,load_compressed_Fmnist_data,load_Fmnist_data_train,load_csv_Fmnist_data
+from dataloader.dataloader import load_compressed_Fmnist_data,load_csv_Fmnist_data
 from train.training import train_nomal
 from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusion_matrix,create_table
 from result_management.data_manager import save_csv,save_experiment_report,create_result_pdf
@@ -22,8 +22,10 @@ formatted_time = now.strftime("%m%d%H%M")
 formatted_time = int(formatted_time)
 print(f'-----Formatted time: {formatted_time} -----')
 #-----------------------------------------------------------------
-experiment_type = "fft_sim" # 'fft_phyz' or 'fft_sim'
-experiment_name = f"{experiment_type}{formatted_time}"
+experiment_type = "fft_phyz" # 'fft_phyz' or 'fft_sim'
+
+data_id = 5  # fft_phyzのみ　0~5
+experiment_name = f"{experiment_type}{formatted_time}_No{data_id}"
 variable_param = "compressed_dim" #ここで設定した項目は配列にすること(none,leverage,alpha)
 save = True
 show = False
@@ -35,7 +37,7 @@ params = {
     'batch_size': 100, #64 MNIST, 100 CIFAR10, 100 CINIC10
 
     #Encoder_Model--------------------------------
-    'enc_type': 'PM', # 'none', 'MZM', 'LI'
+    'enc_type': 'none', # 'none', 'MZM', 'LI'
     'alpha': np.pi, 
     #位相変調機の感度[np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16],pi:-π~π
     #class_model--------------------------------------
@@ -64,15 +66,14 @@ folder_params = {k: params[k] for k in ['dataset', 'enc_type', 'cls_type']}
 if save:
     save_experiment_report(variable_param, params,experiment_name=experiment_name)
 
-data_loaders = {
-    'cifar-10': load_CIFAR10_data,
-    'cinic-10': load_CINIC10_data,
-    'mnist': load_MNIST_data,
-    'fashion-mnist': load_csv_Fmnist_data if experiment_type == "fft_sim" else load_compressed_Fmnist_data,
-    'covtype': load_Covtype_data
-}
 
-data_train,data_test = data_loaders[params["dataset"]]()
+if experiment_type == "fft_sim":
+    data_train,data_test = load_csv_Fmnist_data()
+elif experiment_type == "fft_phyz":
+    data_train,data_test = load_compressed_Fmnist_data(data_id=data_id)
+else:
+    raise KeyError("experiment_type is invalid.")
+
 if params["enc_type"] == 'none':    
     leverage = 1
 results = []
@@ -81,7 +82,7 @@ All_last_ACCs_ = []
 All_TIMEs_ = []
 
 for variable in params[variable_param]: #variable:leverage,alpha
-    print(f'----------------------Running with {variable_param}: {variable}----------------------')
+    print(f'----------------------ID:{data_id} Running with {variable_param}: {variable}----------------------')
     All_last_loss = []
     All_loss_test = []
     All_pro_time = []
