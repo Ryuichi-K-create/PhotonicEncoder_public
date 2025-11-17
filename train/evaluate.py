@@ -454,7 +454,7 @@ def show_images(images,labels,dataset,fixed_indices):
 def final_graph_maker(file_pathes,variable_param,variable_values,memory_lis,labels,Save=False, Show=False):
     labelsize = 15
     fontsize = 25
-    fmts =  ['-o', '-s', '-^', '-D']  # 各モデルのプロットスタイル
+    fmts = ['-o', '-s', '-^', '-D', '-v', '-<', '-p', '-*', '-h', '-H'] # 各モデルのプロットスタイル
 
     # LOSSのグラフ
     fig1, ax1 = plt.subplots(figsize=(6, 4.5))
