@@ -19,7 +19,8 @@ from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusio
 from result_management.data_manager import save_csv,save_experiment_report,create_result_pdf
 now = datetime.now()
 formatted_time = now.strftime("%m%d%H%M")
-formatted_time = int(formatted_time)
+# formatted_time = int(formatted_time)
+formatted_time = 11190120
 print(f'-----Formatted time: {formatted_time} -----')
 #-----------------------------------------------------------------
 experiment_type = "fft_phyz" # 'fft_phyz' or 'fft_sim'
@@ -27,8 +28,8 @@ experiment_type = "fft_phyz" # 'fft_phyz' or 'fft_sim'
 data_id = 4  # fft_phyzのみ　0~5
 experiment_name = f"{experiment_type}{formatted_time}_No{data_id}"
 variable_param = "none" #ここで設定した項目は配列にすること(none,leverage,alpha)
-save = False
-show = True
+save = True
+show = False
 
 params = {
     'none':[0], #variable_param=noneの際は1回だけ繰り返す
