@@ -11,10 +11,10 @@ class MLP_for_10(nn.Module):#10値分類なら使える。
         if n_patches is not None:
             # print(f"MLP_for_10: potential_dim={potential_dim}, n_patches={n_patches}")
             # self.bn = nn.BatchNorm1d(potential_dim//n_patches)
-            self.ln = nn.LayerNorm(potential_dim//n_patches,elementwise_affine=False)
+            self.ln = nn.LayerNorm(potential_dim//n_patches,elementwise_affine=True)
         else:
             # self.bn = nn.BatchNorm1d(potential_dim)
-            self.ln = nn.LayerNorm(potential_dim,elementwise_affine=False)
+            self.ln = nn.LayerNorm(potential_dim,elementwise_affine=True)
         func ={
             'relu':nn.ReLU(),
             'tanh':nn.Tanh(),
@@ -24,8 +24,8 @@ class MLP_for_10(nn.Module):#10値分類なら使える。
         ac_func = func[fc]
         if num_layer > 1:
             for i in range(num_layer-1):
-                # next_dim = max(10,current_dim//2)
-                next_dim = max(64,current_dim//2)
+                next_dim = max(15,current_dim//2)
+                # next_dim = max(64,current_dim//2)
                 layers.append(nn.Linear(current_dim,next_dim))
                 layers.append(ac_func)
                 layers.append(nn.Dropout(dropout))

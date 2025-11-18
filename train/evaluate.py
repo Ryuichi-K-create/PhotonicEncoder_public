@@ -1,8 +1,38 @@
 import torch
 import matplotlib.pyplot as plt
 from matplotlib import rcParams, font_manager
+import platform
+
+# フォント設定を改善（macOSでの日本語対応）
 _available_fonts = {f.name for f in font_manager.fontManager.ttflist}
-rcParams['font.family'] = 'Times New Roman' if 'Times New Roman' in _available_fonts else 'DejaVu Serif'
+system_type = platform.system()
+
+if system_type == "Darwin":  # macOS
+    # macOSで利用可能な日本語フォントを優先順位で設定
+    japanese_fonts = [
+        'Hiragino Sans',
+        'Hiragino Kaku Gothic ProN',
+        'Hiragino Mincho ProN',
+        'Osaka',
+        'AppleGothic',
+        'Noto Sans CJK JP',
+        'Yu Gothic',
+        'DejaVu Sans'
+    ]
+    
+    # 利用可能なフォントから最初に見つかったものを選択
+    selected_font = 'DejaVu Sans'  # デフォルト
+    for font in japanese_fonts:
+        if font in _available_fonts:
+            selected_font = font
+            break
+    
+    rcParams['font.family'] = selected_font
+    rcParams['axes.unicode_minus'] = False  # マイナス記号の文字化け防止
+else:
+    # その他のOS（従来の設定）
+    rcParams['font.family'] = 'Times New Roman' if 'Times New Roman' in _available_fonts else 'DejaVu Serif'
+
 import numpy as np
 import pandas as pd
 import seaborn as sns

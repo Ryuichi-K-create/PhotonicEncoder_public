@@ -63,8 +63,6 @@ def train_nomal(dataset,loss_func,optimizer,lr,num_times,num_try,data_train,
     #=========================================================
     total_params = sum(p.numel() for p in model.parameters())
     print(f'Total parameters: {total_params}')
-    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    print(f'Trainable parameters: {trainable_params}')
     #=========================================================
 
     if dataset == 'covtype':
