@@ -227,7 +227,7 @@ class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
         self.enc_type = enc_type
         self.ex_type = ex_type
         self.fft = FFTLowFreqSelector(out_dim=self.fft_dim, log_magnitude=True)
-        self.bn = nn.BatchNorm1d(self.fft_dim).to(device)
+        # self.bn = nn.BatchNorm1d(self.fft_dim).to(device)
         self.ln = nn.LayerNorm(self.fft_dim, elementwise_affine=False).to(device)
         self.encoder = encoders[enc_type](self.fft_dim,feat_dim,alpha,device=device) 
 
