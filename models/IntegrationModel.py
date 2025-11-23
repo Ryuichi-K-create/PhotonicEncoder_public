@@ -55,15 +55,21 @@ class PMEncoder(nn.Module):
         B = U[:output_dim, :]                               # [out, in]
         self.register_buffer("B", B)                        # 固定
 
-        # 位相係数 α の初期化（π/2 ~ π の範囲でランダム、学習不能）
-        alpha_min = math.pi / 2
-        alpha_max = math.pi 
-        alpha_t = torch.rand(1, input_dim, dtype=torch.float32, device=device) * (alpha_max - alpha_min) + alpha_min
-        
-        # alpha_t = torch.full((1, input_dim), float(alpha), dtype=torch.float32, device=device)
+        # 位相係数 α の初期化（学習不能）
+        if isinstance(alpha, (tuple, list)) and len(alpha) == 2:
+            # alphaが(min, max)のタプル/リストで指定された場合
+            alpha_min, alpha_max = float(alpha[0]), float(alpha[1])
+            if alpha_min == alpha_max:
+                # min=maxの場合は一定値
+                alpha_t = torch.full((1, input_dim), alpha_min, dtype=torch.float32, device=device)
+            else:
+                # min≠maxの場合はランダム初期化
+                alpha_t = torch.rand(1, input_dim, dtype=torch.float32, device=device) * (alpha_max - alpha_min) + alpha_min
+        else:
+            # alphaが単一の値で指定された場合は一定値
+            alpha_t = torch.full((1, input_dim), float(alpha), dtype=torch.float32, device=device)
 
         self.register_buffer("alpha", alpha_t)  # 学習不能（固定）
-        # print(f"PMEncoder initialized (fixed, π/2~π): alpha mean={self.alpha.mean().item():.6f}, std={self.alpha.std().item():.6f}, min={self.alpha.min().item():.6f}, max={self.alpha.max().item():.6f}")
         
         # 入力振幅（総パワー一定なら 1/√N が無難）
         amp = torch.full((1, input_dim), 1.0 / math.sqrt(input_dim), dtype=torch.float32, device=device)
