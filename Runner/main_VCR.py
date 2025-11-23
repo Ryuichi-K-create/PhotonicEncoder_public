@@ -26,21 +26,21 @@ experiment_type = "normal" # 'normal' or 'fft' or 'deq'
 experiment_name = f"{experiment_type}{formatted_time}"
 variable_param = "none" #ここで設定した項目は配列にすること(none,leverage,alpha)
 save = False
-show = False
+show = True
 
 params = {
     'none':[0], #variable_param=noneの際は1回だけ繰り返す
     #data---------------------------------------------
-    'dataset': 'fashion-mnist', # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
+    'dataset': 'cifar-10', # 'mnist', 'cifar-10', 'cinic-10' , 'fashion-mnist'
     'batch_size': 100, #64 MNIST, 100 CIFAR10, 100 CINIC10
 
     #Encoder_Model--------------------------------
-    'enc_type': 'PM', # 'none', 'MZM', 'LI'
+    'enc_type': 'none', # 'none', 'MZM', 'LI'
     'alpha': np.pi/2, 
     #位相変調機の感度[np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16],pi:-π~π
     #class_model--------------------------------------
     'cls_type': 'MLP', # 'MLP' or 'CNN'
-    'num_layer': 2,
+    'num_layer': 1,
     'fc': 'relu', #num_layer>=2のときのみ有効
     'dropout': 0.0,
 
@@ -51,8 +51,8 @@ params = {
 
     #param--------------------------------------------
     'num_try': 1,
-    'max_epochs': 10,
-    'leverage': 16, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48](fft特徴量版では設定しない)
+    'max_epochs': 100,
+    'leverage': 0, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48](fft特徴量版では設定しない)
     'kernel_size': 0, #0の時、分割なし。(fft特徴量版では設定しない)
     #fft----------------------------------------------
     'fft_dim': 32, # FFT特徴量の次元数

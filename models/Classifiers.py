@@ -24,7 +24,7 @@ class MLP_for_10(nn.Module):#10値分類なら使える。
         ac_func = func[fc]
         if num_layer > 1:
             for i in range(num_layer-1):
-                next_dim = max(15,current_dim//2)
+                next_dim = max(60,current_dim//2)
                 # next_dim = max(64,current_dim//2)
                 layers.append(nn.Linear(current_dim,next_dim))
                 layers.append(ac_func)

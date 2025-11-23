@@ -19,17 +19,17 @@ from train.evaluate import plot_loss_curve,plot_errorbar_losscurve,plot_confusio
 from result_management.data_manager import save_csv,save_experiment_report,create_result_pdf
 now = datetime.now()
 formatted_time = now.strftime("%m%d%H%M")
-# formatted_time = int(formatted_time)
-formatted_time = 11190120
+formatted_time = int(formatted_time)
+# formatted_time = 11190120
 print(f'-----Formatted time: {formatted_time} -----')
 #-----------------------------------------------------------------
-experiment_type = "fft_phyz" # 'fft_phyz' or 'fft_sim'
+experiment_type = "fft_sim" # 'fft_phyz' or 'fft_sim'
 
-data_id = 4  # fft_phyzのみ　0~5
+data_id = 0  # fft_phyzのみ　0~5
 experiment_name = f"{experiment_type}{formatted_time}_No{data_id}"
 variable_param = "none" #ここで設定した項目は配列にすること(none,leverage,alpha)
-save = True
-show = False
+save = False 
+show = False 
 
 params = {
     'none':[0], #variable_param=noneの際は1回だけ繰り返す
@@ -38,8 +38,8 @@ params = {
     'batch_size': 100, #64 MNIST, 100 CIFAR10, 100 CINIC10
 
     #Encoder_Model--------------------------------
-    'enc_type': 'none', # 'none', 'MZM', 'LI'
-    'alpha': np.pi, 
+    'enc_type': 'PM', # 'none', 'MZM', 'LI'
+    'alpha': np.pi/2, 
     #位相変調機の感度[np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16],pi:-π~π
     #class_model--------------------------------------
     'cls_type': 'MLP', # 'MLP' or 'CNN'
@@ -60,7 +60,7 @@ params = {
     #fft----------------------------------------------
     'fft_dim': 32, # FFT特徴量の次元数
     'enc_out': 17, # FFT出力の次元数
-    'compressed_dim': 17#list(range(17,0,-1)) # 圧縮後の次元数
+    'compressed_dim': 17#list(range(17,0,-1)) # 圧縮後の次元数 
 }
 #save---------------------------------------------
 folder_params = {k: params[k] for k in ['dataset', 'enc_type', 'cls_type']}
@@ -82,7 +82,7 @@ All_last_LOSSs_ = []
 All_last_ACCs_ = []
 All_TIMEs_ = []
 
-for variable in params[variable_param]: #variable:leverage,alpha
+for variable in params[variable_param]: #variable:leverage,alpha 
     print(f'----------------------ID:{data_id} Running with {variable_param}: {variable}----------------------')
     All_last_loss = []
     All_loss_test = []
@@ -118,7 +118,8 @@ for variable in params[variable_param]: #variable:leverage,alpha
         save_csv(datas,variable_param,variable,num_times,**folder_params,save_type='mid',experiment_name=experiment_name)
     if show:  
         plot_errorbar_losscurve(All_loss_test,Save=save,Show=show)
-        create_table(All_test_acc,All_last_loss,All_pro_time,Save=save,Show=show)
+
+    create_table(All_test_acc,All_last_loss,All_pro_time,Save=save,Show=True)
 
     All_last_ACCs_.append(All_test_acc)
     All_last_LOSSs_.append(All_last_loss)

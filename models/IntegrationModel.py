@@ -41,7 +41,7 @@ class PMEncoder(nn.Module):
     - チップ: ユニタリUの上位 output_dim 行を観測行列Bとして使用
     - 出力: I = |E_in @ B^T|^2  （PD強度） 
     """
-    def __init__(self, input_dim, output_dim, alpha=2*math.pi,device='cpu', seed=None): 
+    def __init__(self, input_dim, output_dim, alpha=2*math.pi, device='cpu', seed=None, alpha_range=None): 
         super().__init__()
         device = torch.device(device)
         self.input_dim = input_dim
@@ -55,14 +55,16 @@ class PMEncoder(nn.Module):
         B = U[:output_dim, :]                               # [out, in]
         self.register_buffer("B", B)                        # 固定
 
-        # 位相係数 α と バイアス β（チャネル別）
-        alpha_t = torch.full((1, input_dim), float(alpha), dtype=torch.float32, device=device)
-        # alpha_t = (torch.rand(input_dim) - 0.5) * (2*alpha)
-        # print(f"PMEncoder: alpha_t={alpha_t}")
-        # self.register_buffer("alpha", alpha_t)
-        # alpha の ±10% の範囲でランダムな値を生成
-        # alpha_t = torch.rand(1, input_dim, dtype=torch.float32, device=device) * (0.2 * float(alpha)) + (0.9 * float(alpha)) 
-        self.register_buffer("alpha", alpha_t.to(device))  # 固定
+        # 位相係数 α の初期化（π/2 ~ π の範囲でランダム、学習不能）
+        alpha_min = math.pi / 2
+        alpha_max = math.pi 
+        alpha_t = torch.rand(1, input_dim, dtype=torch.float32, device=device) * (alpha_max - alpha_min) + alpha_min
+        
+        # alpha_t = torch.full((1, input_dim), float(alpha), dtype=torch.float32, device=device)
+
+        self.register_buffer("alpha", alpha_t)  # 学習不能（固定）
+        # print(f"PMEncoder initialized (fixed, π/2~π): alpha mean={self.alpha.mean().item():.6f}, std={self.alpha.std().item():.6f}, min={self.alpha.min().item():.6f}, max={self.alpha.max().item():.6f}")
+        
         # 入力振幅（総パワー一定なら 1/√N が無難）
         amp = torch.full((1, input_dim), 1.0 / math.sqrt(input_dim), dtype=torch.float32, device=device)
         self.register_buffer("amp", amp)
@@ -71,6 +73,7 @@ class PMEncoder(nn.Module):
         # x: [B, input_dim]（0..1の実数）
         x = x.to(self.alpha.device, dtype=torch.float32)
 
+        # alphaは固定値（学習されない）なので、そのまま使用
         # 位相 φ = α⊙x
         phi = x * self.alpha                        # [B, in], 実数
         # 入力場 E_in = A * exp(i φ)
@@ -80,6 +83,12 @@ class PMEncoder(nn.Module):
         # PD強度
         I = (E_out.abs() ** 2)                      # [B, out], 実・非負
         return I
+    
+    def print_alpha_stats(self):
+        """alphaの統計情報を表示（固定値）"""
+        alpha_values = self.alpha.detach().cpu().numpy().flatten()
+        print(f"PMEncoder alpha stats (fixed): mean={alpha_values.mean():.6f}, std={alpha_values.std():.6f}, min={alpha_values.min():.6f}, max={alpha_values.max():.6f}")
+        print(f"PMEncoder alpha values (fixed): {alpha_values.tolist()}")
 
 class IMEncoder(nn.Module):
     def __init__(self,input_dim,output_dim,alpha,device='cpu'):
@@ -169,7 +178,9 @@ class Image10Classifier(nn.Module):#10クラスの画像用
             self.classifier =  classifiers[cls_type](potential_dim,num_layer,fc,self.num_patches,dropout).to(device)
         else:
             potential_dim = self.channels * self.img_size * self.img_size
-            feat_dim = int(potential_dim/leverage)
+            
+            feat_dim = int(potential_dim/leverage) if leverage > 0 else potential_dim
+
             self.encoder = encoders[enc_type](potential_dim,feat_dim,alpha,device)
             self.classifier =  classifiers[cls_type](feat_dim,num_layer,fc,n_patches=None,dropout=dropout).to(device)
     
@@ -224,12 +235,18 @@ class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
         self.fft_dim = fft_params['fft_dim'] #fft特徴量の次元数
         feat_dim = fft_params['enc_out'] #encoder出力の次元数
         self.compressed_dim = fft_params['compressed_dim'] #圧縮後の次元数
+        alpha_range = fft_params.get('alpha_range', None)  # alpha初期化範囲（オプション）
         self.enc_type = enc_type
         self.ex_type = ex_type
         self.fft = FFTLowFreqSelector(out_dim=self.fft_dim, log_magnitude=True)
         # self.bn = nn.BatchNorm1d(self.fft_dim).to(device)
         self.ln = nn.LayerNorm(self.fft_dim, elementwise_affine=False).to(device)
-        self.encoder = encoders[enc_type](self.fft_dim,feat_dim,alpha,device=device) 
+        
+        # PMEncoderにalpha_rangeを渡す
+        if enc_type == 'PM':
+            self.encoder = PMEncoder(self.fft_dim, feat_dim, alpha, device=device, alpha_range=alpha_range)
+        else:
+            self.encoder = encoders[enc_type](self.fft_dim, feat_dim, alpha, device=device) 
 
         self._selected_cols = None  # ランダムに選んだ列のインデックスを保存するための変数
 
@@ -275,7 +292,7 @@ class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
             # print("x after normalization:", x)
             x = self.encoder(x.view(b, -1)) 
         # print("After Encoder: x.shape=",x.shape)
-        x = self.random_subarray(x, self.compressed_dim)
+        # x = self.random_subarray(x, self.compressed_dim)
         # print("After Subarray: x.shape=",x.shape)
         x = self.classifier(x,b)
         return x
