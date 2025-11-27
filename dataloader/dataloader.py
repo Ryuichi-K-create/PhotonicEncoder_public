@@ -71,8 +71,14 @@ def load_Fmnist_data_train(split_train=50000, split_test=10000):
 
     return (train_data, val_data)
 #--------------------------------------------------------
-def load_csv_Fmnist_data():
-    file_path = os.path.join(os.path.dirname(__file__), 'samples',  'fashion_mnist_fft_features.csv')
+def load_csv_Fmnist_data(data_id=0):
+    file_name = {0: 'fft_magnitude_low.csv',
+                 1: 'fft_magnitude_high.csv',
+                 2:'fft_phase_low.csv',
+                 3:'fft_phase_high.csv'
+                 }
+    file_path = os.path.join(os.path.dirname(__file__), 'samples',
+                             'fashion_mnist_fft',  file_name[data_id])
     data = pd.read_csv(file_path, header=None)
     X = data.iloc[:, 0:32].to_numpy()
     y = data.iloc[:, 33].to_numpy()  # 正しいラベル列は33列目

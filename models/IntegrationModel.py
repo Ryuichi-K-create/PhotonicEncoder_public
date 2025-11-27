@@ -293,7 +293,7 @@ class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
             # x = self.bn(x)
             # x = self.ln(x)
             #--------------------------------------------
-            x = normalize_zero_one(x)
+            # x = normalize_zero_one(x)
             #--------------------------------------------
             # print("x after normalization:", x)
             x = self.encoder(x.view(b, -1)) 
