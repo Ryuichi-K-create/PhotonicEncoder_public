@@ -9,11 +9,8 @@ class MLP_for_10(nn.Module):#10値分類なら使える。
         current_dim = potential_dim
 
         if n_patches is not None:
-            # print(f"MLP_for_10: potential_dim={potential_dim}, n_patches={n_patches}")
-            # self.bn = nn.BatchNorm1d(potential_dim//n_patches)
             self.ln = nn.LayerNorm(potential_dim//n_patches,elementwise_affine=True)
         else:
-            # self.bn = nn.BatchNorm1d(potential_dim)
             self.ln = nn.LayerNorm(potential_dim,elementwise_affine=True)
         func ={
             'relu':nn.ReLU(),
@@ -25,7 +22,6 @@ class MLP_for_10(nn.Module):#10値分類なら使える。
         if num_layer > 1:
             for i in range(num_layer-1):
                 next_dim = max(60,current_dim//2)
-                # next_dim = max(64,current_dim//2)
                 layers.append(nn.Linear(current_dim,next_dim))
                 layers.append(ac_func)
                 layers.append(nn.Dropout(dropout))
@@ -34,8 +30,6 @@ class MLP_for_10(nn.Module):#10値分類なら使える。
         self.model = nn.Sequential(*layers)
 
     def forward(self, x,b):
-        # print(f"MLP_for_10: x.shape={x.shape}, b={b}")
-        # x = self.bn(x)
         x = self.ln(x)
         x = x.reshape(b, -1)
         x = self.model(x)
@@ -71,8 +65,6 @@ class MLP_for_7(nn.Module):#7値分類の表データなら使える。
         self.model = nn.Sequential(*layers)
 
     def forward(self, x,b):
-        #x = self.bn(x)
-        # x = x.reshape(b, -1)
         x = self.model(x)
         return x
 
@@ -105,7 +97,6 @@ class CNN_for10(nn.Module):
 
     def forward(self, x,b):
         x = x.reshape(b, self.side, self.side, -1).permute(0, 3, 1, 2)
-        # print(f"CNN_for10: x reshaped to (b,c,h,w): x.shape={x.shape}")
         x = self.bn(x)
         x = self.conv1(x)
         x = self.func(x)

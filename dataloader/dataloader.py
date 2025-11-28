@@ -1,4 +1,4 @@
-import torch##
+import torch
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, Subset, Dataset
 import os
@@ -38,10 +38,8 @@ def load_MNIST_data():
 #--------------------------------------------------------
 def load_Fmnist_data():
     transform = transforms.Compose([
-        # transforms.RandomHorizontalFlip(),
-        # transforms.RandomRotation(10),  # ±10度回転
         transforms.ToTensor(),
-        transforms.Normalize((0.5,), (0.5,)),  # 推奨値
+        transforms.Normalize((0.5,), (0.5,)),
         lambda x: x.view(-1)
     ])
 
@@ -53,9 +51,9 @@ def load_Fmnist_data():
 def load_Fmnist_data_train(split_train=50000, split_test=10000):
     transform = transforms.Compose([
         transforms.RandomHorizontalFlip(),
-        transforms.RandomRotation(10),  # ±10度回転
+        transforms.RandomRotation(10),
         transforms.ToTensor(),
-        transforms.Normalize((0.5,), (0.5,)),  # 推奨値
+        transforms.Normalize((0.5,), (0.5,)),
         lambda x: x.view(-1)
     ])
 
@@ -82,11 +80,6 @@ def load_csv_Fmnist_data(data_id=0):
     data = pd.read_csv(file_path, header=None)
     X = data.iloc[:, 0:32].to_numpy()
     y = data.iloc[:, 33].to_numpy()  # 正しいラベル列は33列目
-
-    # scaler = StandardScaler()
-    # X_scaled = scaler.fit_transform(X)標準化しない
-    X = data.iloc[:, 0:32].to_numpy()    # DataFrame -> numpy array に変換
-    y = data.iloc[:, 33].to_numpy()      # Series -> numpy array に変換
 
     # 標準化しない場合でも numpy 配列にしてから分割する
     X_train, X_test, y_train, y_test = train_test_split(
@@ -116,9 +109,6 @@ def load_compressed_Fmnist_data(data_id=0):
     data = pd.read_csv(file_path, header=None)
     X = data.iloc[:, 0:17].to_numpy()
     y = data.iloc[:, 18].to_numpy()  # 正しいラベル列は18列目
-
-    # scaler = StandardScaler()
-    # X_scaled = scaler.fit_transform(X)標準化しない
 
     # 標準化しない場合でも numpy 配列にしてから分割する
     X_train, X_test, y_train, y_test = train_test_split(

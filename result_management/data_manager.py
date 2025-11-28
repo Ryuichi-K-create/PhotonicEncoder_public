@@ -1,15 +1,13 @@
 import os
 import platform
 from datetime import datetime
-import subprocess
 import csv
 import ast
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.platypus import Table, TableStyle
 import numpy as np
-from reportlab.lib import colors
 
 from train.evaluate import plot_loss_curve, plot_confusion_matrix, plot_errorbar_losscurve, create_table, final_graph_maker
 
@@ -24,24 +22,14 @@ system_type = platform.system()
 onedrive_path = None
 if system_type == "Windows":
     # Windows では環境変数が使える（MS公式な方法）
-    onedrive_path = os.environ.get("OneDrive")
+    onedrive_path = os.path.join(home_directory, "MaskedPath")
     if onedrive_path is None:
         # フォールバック
-        onedrive_path = os.path.join(home_directory, "OneDrive")
+        onedrive_path = os.path.join(home_directory, "MaskedPath")
 elif system_type == "Darwin": 
-    onedrive_path = os.path.join(home_directory, "Library", "CloudStorage", "OneDrive-個人用(2)")
+    onedrive_path = os.path.join(home_directory, "MaskedPath")
 elif system_type == "Linux":
-    onedrive_path = os.path.join("/home1/konishi/Photonic_Encoder/PhotonicEncoder/result_data")
-#------------------------------------------------------------------------------------------
-def auto_git_push(branch_name,commit_msg="Auto commit"):
-    commit_msg = f"{formatted_time}_{commit_msg}"
-    try:
-        subprocess.run(["git", "add", "."], check=True)
-        subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-        subprocess.run(["git", "push","origin",branch_name], check=True)
-        print("✅ Git push 完了！")
-    except subprocess.CalledProcessError as e:
-        print("❌ Git操作でエラー:", e)
+    onedrive_path = os.path.join(home_directory, "MaskedPath")
 
 #--------------------------------------------------------------------------------
 def save_csv(datas,variable_param,variable,num_times,dataset,enc_type,cls_type,save_type,experiment_name): #結果はonedriveに保存
@@ -51,7 +39,7 @@ def save_csv(datas,variable_param,variable,num_times,dataset,enc_type,cls_type,s
         variable = f'{variable/np.pi:.3f}π'
 
     if save_type == 'trial':
-        file_name = f'{variable}{variable_param}_{num_times+1}th_.csv'##
+        file_name = f'{variable}{variable_param}_{num_times+1}th_.csv'
     elif save_type=='mid':
         file_name = f'{variable}{variable_param}_mid.csv'
 

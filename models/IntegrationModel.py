@@ -22,79 +22,23 @@ def normalize_zero_one(x, eps=1e-8):
     x = (x - xmin) / (xmax - xmin + eps)
     return x
 
-#--------------------------------------------------------------------
-def _rand_unitary(n, device=None, dtype=torch.cfloat):
-    """複素ガウス→QRでHaar近似のユニタリ行列を生成"""
-    A = torch.randn(n, n, device=device) + 1j * torch.randn(n, n, device=device) 
-    Q, R = torch.linalg.qr(A)
-    # 対角成分の位相で正規化
-    d = torch.diagonal(R)
-    ph = d / torch.abs(d)
-    Q = Q @ torch.diag(ph.conj())
-    return Q.to(dtype)
-
 class PMEncoder(nn.Module):
     """
     Photonic phase-mod encoder: [B, input_dim] -> [B, output_dim]
-    - 位相: φ = α ⊙ x （xは[0,1]想定）
-    - 入力場: E_in = A * exp(i φ)  （Aは等振幅）
-    - チップ: ユニタリUの上位 output_dim 行を観測行列Bとして使用
-    - 出力: I = |E_in @ B^T|^2  （PD強度） 
+    (Masked for portfolio)
     """
     def __init__(self, input_dim, output_dim, alpha=2*math.pi, device='cpu', seed=None, alpha_range=None): 
         super().__init__()
-        device = torch.device(device)
-        self.input_dim = input_dim
-        self.output_dim = output_dim
-
-        if seed is not None:
-            torch.manual_seed(seed)
-
-        # ランダムユニタリの行を切り出して観測行列Bに（受動干渉の部分観測モデル）
-        U = _rand_unitary(input_dim, device=device)         # [in, in]
-        B = U[:output_dim, :]                               # [out, in]
-        self.register_buffer("B", B)                        # 固定
-
-        # 位相係数 α の初期化（学習不能）
-        if isinstance(alpha, (tuple, list)) and len(alpha) == 2:
-            # alphaが(min, max)のタプル/リストで指定された場合
-            alpha_min, alpha_max = float(alpha[0]), float(alpha[1])
-            if alpha_min == alpha_max:
-                # min=maxの場合は一定値
-                alpha_t = torch.full((1, input_dim), alpha_min, dtype=torch.float32, device=device)
-            else:
-                # min≠maxの場合はランダム初期化
-                alpha_t = torch.rand(1, input_dim, dtype=torch.float32, device=device) * (alpha_max - alpha_min) + alpha_min
-        else:
-            # alphaが単一の値で指定された場合は一定値
-            alpha_t = torch.full((1, input_dim), float(alpha), dtype=torch.float32, device=device)
-
-        self.register_buffer("alpha", alpha_t)  # 学習不能（固定）
-        
-        # 入力振幅（総パワー一定なら 1/√N が無難）
-        amp = torch.full((1, input_dim), 1.0 / math.sqrt(input_dim), dtype=torch.float32, device=device)
-        self.register_buffer("amp", amp)
+        # Masked implementation
+        pass
 
     def forward(self, x):
-        # x: [B, input_dim]（0..1の実数）
-        x = x.to(self.alpha.device, dtype=torch.float32)
-
-        # alphaは固定値（学習されない）なので、そのまま使用
-        # 位相 φ = α⊙x
-        phi = x * self.alpha                        # [B, in], 実数
-        # 入力場 E_in = A * exp(i φ)
-        E_in = self.amp * torch.exp(1j * phi)       # [B, in], 複素
-        # 出力場
-        E_out = E_in @ self.B.transpose(0, 1)       # [B, out], 複素
-        # PD強度
-        I = (E_out.abs() ** 2)                      # [B, out], 実・非負
-        return I
+        # Masked implementation
+        pass
     
     def print_alpha_stats(self):
-        """alphaの統計情報を表示（固定値）"""
-        alpha_values = self.alpha.detach().cpu().numpy().flatten()
-        print(f"PMEncoder alpha stats (fixed): mean={alpha_values.mean():.6f}, std={alpha_values.std():.6f}, min={alpha_values.min():.6f}, max={alpha_values.max():.6f}")
-        print(f"PMEncoder alpha values (fixed): {alpha_values.tolist()}")
+        # Masked implementation
+        pass
 
 class IMEncoder(nn.Module):
     def __init__(self,input_dim,output_dim,alpha,device='cpu'):
@@ -193,21 +137,15 @@ class Image10Classifier(nn.Module):#10クラスの画像用
     def forward(self, x):
         # print("Image10Classifier: x.shape=",x.shape)
         b = x.size(0)
-        # print(f"Image10Classifier: x reshaped to (b,c,h,w): x.shape={x.shape}")
         if self.kernel_size > 0:
             x = x.view(b, self.channels, self.img_size, self.img_size)
             x = split_into_kernels(x, self.kernel_size)#(b, p, c, k, k)
-        # print(f"Image10Classifier: x split into patches: x.shape={x.shape}")
             x = x.reshape(b * self.num_patches,
                     self.channels * self.kernel_size**2)
         else:
             x = x.view(b, -1)
         if self.enc_type != 'none': 
-            # x = normalize_zero_one(x) 
-            # print("Before Encoder: x.shape=",x.shape)
-            # print(f"Before Encoder: x={x[0]}")
             x = self.encoder(x)
-            # print("After Encoder: x.shape=",x.shape)
         x = self.classifier(x,b)
         return x
 
@@ -254,52 +192,16 @@ class Image10Classifier_FFT(nn.Module):#10クラスの画像用(FFT特徴量版)
         else:
             self.encoder = encoders[enc_type](self.fft_dim, feat_dim, alpha, device=device) 
 
-        self._selected_cols = None  # ランダムに選んだ列のインデックスを保存するための変数
-
         self.classifier =  classifiers[cls_type](self.compressed_dim,num_layer,fc,n_patches=None,dropout=dropout).to(device)
 
-    def random_subarray(self, arr, m: int):
-        """
-        2D tensor/ndarray arr (batch, K) から列をランダムに m 個選んで (batch, m) を返す（torch.Tensor を返す）。
-        - 入力が numpy.ndarray の場合は torch.Tensor に変換する。
-        """
-        # numpy を受け取ったら tensor に変換
-        if isinstance(arr, np.ndarray):
-            arr = torch.from_numpy(arr)
-        if not torch.is_tensor(arr):
-            arr = torch.tensor(arr)
-        if arr.dim() != 2:
-            raise ValueError(f"arr must be 2D (batch, features), got dim={arr.dim()}")
-        batch, K = arr.shape
-        if m > K:
-            raise ValueError(f"m ({m}) must be smaller than number of features ({K})")
-        if m == K:
-            return arr  # 全列選択ならそのまま返す
-        if self._selected_cols is None or self._selected_cols.numel() != m or self._selected_cols.max().item() >= K:
-            cols = torch.randperm(K, device=self.device)[:m]
-            cols, _ = torch.sort(cols)  # 元の列順を保つ
-            self._selected_cols = cols.to(self.device).clone().detach()
-        return arr[:, self._selected_cols]
-    
     def forward(self, x):
-        # print("Image10Classifier_FFT: x.shape=",x.shape)
         if self.ex_type == 'fft':
             x = x.view(x.size(0), self.channels, self.img_size, self.img_size)
-            # print(f"Image10Classifier: x.shape={x.shape}")
             x = self.fft.forward(x)
         b=x.size(0)
         x = x.view(b, -1)
         if self.enc_type != 'none':
-            # x = self.bn(x)
-            # x = self.ln(x)
-            #--------------------------------------------
-            # x = normalize_zero_one(x)
-            #--------------------------------------------
-            # print("x after normalization:", x)
             x = self.encoder(x.view(b, -1)) 
-        # print("After Encoder: x.shape=",x.shape)
-        # x = self.random_subarray(x, self.compressed_dim)
-        # print("After Subarray: x.shape=",x.shape)
         x = self.classifier(x,b)
         return x
 
@@ -397,7 +299,6 @@ class DEQ_Image10Classifier(nn.Module):#10クラスの画像用(DEQ)
             x = x.view(b, -1)  # (b, 784) for Fashion-MNIST
 
         x = self.deq_main(x)
-        # x = x.reshape(b * self.num_patches,-1)
         x = self.classifier(x,b)
         return x
 
@@ -424,7 +325,6 @@ class DEQ_Image10Classifier_FFT(nn.Module):#10クラスの画像用(DEQ)
         circuit_dim = 7 #積和演算回路の出力次元数
         self.num_iter = num_iter
         self.fft = FFTLowFreqSelector(out_dim=self.fft_dim, log_magnitude=True)
-        self.bn = nn.BatchNorm1d(self.fft_dim)
         self.ln = nn.LayerNorm(self.fft_dim, elementwise_affine=False)
         #--------------------------------------------
         cell = Cell_fft(x_dim=self.fft_dim,circuit_dim=circuit_dim, z_dim=feat_dim,enc_type=enc_type,alpha=alpha,device=device).to(device)
@@ -444,7 +344,6 @@ class DEQ_Image10Classifier_FFT(nn.Module):#10クラスの画像用(DEQ)
         x = self.fft.forward(x)
         b = x.size(0)
         x = x.view(b,-1)
-        # x = self.bn(x)
         x = self.ln(x)
         x = self.deq_main(x)
         x = self.classifier(x,b)

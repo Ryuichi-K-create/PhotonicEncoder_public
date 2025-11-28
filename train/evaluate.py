@@ -93,7 +93,6 @@ def plot_errorbar_losscurve(All_loss_test, Save=False, Show=False):
     ax1.set_ylabel('LOSS', color='blue')
     ax1.tick_params(axis='y', labelcolor='blue')
     plt.title('LOSS Transition in Test data')
-    #plt.ylim(1.0,2.0)
     if Show:
         plt.show()
     if Save:
@@ -115,9 +114,9 @@ def plot_confusion_matrix(true_labels,pred_labels,dataset,test_acc,Save=False,Sh
     }
     cm = confusion_matrix(true_labels,pred_labels)
     cm = cm.astype('float')/cm.sum(axis=1,keepdims = True)
-    plt.figure(figsize=(6,4.5))#8,6
+    plt.figure(figsize=(6,4.5))
     sns.heatmap(cm, annot=True, fmt=".2f", cmap="Blues",
-                xticklabels=num_labels[dataset],yticklabels=num_labels[dataset])#,vmin=0.0, vmax=1.0)
+                xticklabels=num_labels[dataset],yticklabels=num_labels[dataset])
     plt.xlabel('Predicted label')
     plt.ylabel('True label')
     plt.title(f"Overall Correction Rate:{test_acc:.2f}%")
