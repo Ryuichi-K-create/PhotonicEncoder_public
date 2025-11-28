@@ -28,7 +28,7 @@ for data_id in range(4):  # fft_sim:0~3, fft_phyz:0~5
     # data_id = 0  # fft_phyzのみ　0~5
     experiment_name = f"{experiment_type}{formatted_time}_No{data_id}"
     variable_param = "none" #ここで設定した項目は配列にすること(none,leverage,alpha)
-    save = False 
+    save = False
     show = False
 
     params = {
@@ -38,8 +38,8 @@ for data_id in range(4):  # fft_sim:0~3, fft_phyz:0~5
         'batch_size': 100, #64 MNIST, 100 CIFAR10, 100 CINIC10
 
         #Encoder_Model--------------------------------
-        'enc_type': 'none', # 'none', 'MZM', 'LI'
-        'alpha': (np.pi/2, np.pi) , 
+        'enc_type': 'PM', # 'none', 'MZM', 'LI'
+        'alpha': (np.pi, np.pi) , 
         #位相変調機の感度[np.pi*2,np.pi, np.pi/2, np.pi/4, np.pi/8, np.pi/16],pi:-π~π
         #class_model--------------------------------------
         'cls_type': 'MLP', # 'MLP' or 'CNN'
@@ -53,14 +53,14 @@ for data_id in range(4):  # fft_sim:0~3, fft_phyz:0~5
         'lr': 0.001,
 
         #param--------------------------------------------
-        'num_try': 1,
+        'num_try': 5,
         'max_epochs': 50,
         'leverage': 0, #mnist:[1,2,4,8,16],cinic:[1,2,3,4,6,8,12,16,24,48](fft特徴量版では設定しない)
         'kernel_size': 0, #(fft特徴量版では設定しない)
         #fft----------------------------------------------
         'fft_dim': 32, # FFT特徴量の次元数
         'enc_out': 17, # FFT出力の次元数
-        'compressed_dim': 32#list(range(17,0,-1)) # 圧縮後の次元数 
+        'compressed_dim': 17#list(range(17,0,-1)) # 圧縮後の次元数 
     }
     #save---------------------------------------------
     folder_params = {k: params[k] for k in ['dataset', 'enc_type', 'cls_type']}
