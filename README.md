@@ -53,9 +53,9 @@
 ### システム構成
 ```mermaid
 graph LR
-    Input[入力画像] -->|光変調| Encoder[光エンコーダ<br>(PM/IM)]
+    Input[入力画像] -->|光変調| Encoder["光エンコーダ<br>(PM/IM)"]
     Encoder -->|光干渉・検出| Compressed[圧縮表現]
-    Compressed -->|デジタル処理| DEQ[Deep Equilibrium Model<br>(復元・分類)]
+    Compressed -->|デジタル処理| DEQ["Deep Equilibrium Model<br>(復元・分類)"]
     DEQ --> Output[クラス分類/画像復元]
 ```
 
@@ -111,7 +111,7 @@ graph LR
     - Bai, S., Kolter, J. Z., & Koltun, V. (2019). *Deep Equilibrium Models*. NeurIPS.
     - [https://arxiv.org/abs/1909.01377](https://arxiv.org/abs/1909.01377)
 2.  **Photonic Encoder**
-    - *All-optical image classification through unknown random projections*. Nature Communications.
+    - X. Wang et al., “Integrated photonic encoder for low power and high-speed image processing,” Nature Communications, 15, 4510 (2024).
     - [https://www.nature.com/articles/s41467-024-48099-2](https://www.nature.com/articles/s41467-024-48099-2)
 
 ---
